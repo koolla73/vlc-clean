@@ -54,6 +54,7 @@ namespace adaptive
                 bool start(SharedResources *, const CommonEncryption &);
                 void close();
                 size_t decrypt(void *, size_t, bool);
+                CommonEncryption::Method getMethod() const { return encryption.method; }
 
             private:
                 std::vector<unsigned char> key;
