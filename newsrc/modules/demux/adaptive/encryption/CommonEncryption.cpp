@@ -28,6 +28,9 @@
 
 #include <vlc_common.h>
 
+#include <iomanip>
+#include <sstream>
+
 #ifdef HAVE_GCRYPT
  #include <gcrypt.h>
  #include <vlc_gcrypt.h>
@@ -93,6 +96,26 @@ bool CommonEncryptionSession::start(SharedResources *res, const CommonEncryption
             return false;
         }
         ctx = handle;
+    }
+    else if(encryption.method == CommonEncryption::Method::AES_Ctr)
+    {
+        if(key.empty())
+        {
+            if(!encryption.uri.empty())
+            {
+                const std::vector<unsigned char> rawKey = res->getKeyring()->getKey(res, encryption.uri);
+                if (rawKey.size() != 16)
+                    return false;
+                std::ostringstream oss;
+                oss << std::hex << std::setfill('0');
+                for (unsigned char b : rawKey)
+                    oss << std::setw(2) << static_cast<int>(b);
+                const std::string keyString = oss.str();
+                key = std::vector<unsigned char>(keyString.cbegin(), keyString.cend());
+            }
+            if(key.size() != 32)
+                return false;
+        }
     }
 #endif
     return true;
