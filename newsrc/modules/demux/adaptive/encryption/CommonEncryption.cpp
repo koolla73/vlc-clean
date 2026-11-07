@@ -171,7 +171,7 @@ size_t CommonEncryptionSession::decrypt(void *inputdata, size_t inputbytes, bool
 
 void CommonEncryptionSession::decryptCtr(block_t **pp_block)
 {
-    AP4_VLC::decrypt(pp_block);
+    AP4_VLC::decrypt(pp_block, encryption.iv, key);
 }
 
 void CommonEncryptionSession::setKeyID(block_t **pp_block)
