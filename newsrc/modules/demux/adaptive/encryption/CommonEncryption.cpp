@@ -153,5 +153,5 @@ void CommonEncryptionSession::decryptCtr(void *inputdata, size_t inputbytes)
 
 void CommonEncryptionSession::setKeyID(void *inputdata, size_t inputbytes)
 {
-    // FIXME:- Fill in.
+    encryption.iv = AP4_VLC::getKeyID(inputdata, inputbytes);
 }
