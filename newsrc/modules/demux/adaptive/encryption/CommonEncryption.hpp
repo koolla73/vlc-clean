@@ -23,6 +23,8 @@
 #include <vector>
 #include <string>
 
+typedef struct vlc_frame_t block_t;
+
 namespace adaptive
 {
     class SharedResources;
@@ -54,9 +56,9 @@ namespace adaptive
                 bool start(SharedResources *, const CommonEncryption &);
                 void close();
                 size_t decrypt(void *, size_t, bool);
-                void decryptCtr(void *, size_t);
+                void decryptCtr(block_t **);
+                void setKeyID(block_t **);
                 CommonEncryption::Method getMethod() const { return encryption.method; }
-                void setKeyID(void *, size_t);
 
             private:
                 std::vector<unsigned char> key;
