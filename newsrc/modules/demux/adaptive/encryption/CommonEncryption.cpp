@@ -146,12 +146,12 @@ size_t CommonEncryptionSession::decrypt(void *inputdata, size_t inputbytes, bool
     return inputbytes;
 }
 
-void CommonEncryptionSession::decryptCtr(void *inputdata, size_t inputbytes)
+void CommonEncryptionSession::decryptCtr(block_t **pp_block)
 {
-    // FIXME:- Fill in.
+    AP4_VLC::decrypt(pp_block);
 }
 
-void CommonEncryptionSession::setKeyID(void *inputdata, size_t inputbytes)
-{
-    encryption.iv = AP4_VLC::getKeyID(inputdata, inputbytes);
+void CommonEncryptionSession::setKeyID(block_t **pp_block)
+{    
+    encryption.iv = AP4_VLC::getKeyID(pp_block);
 }
