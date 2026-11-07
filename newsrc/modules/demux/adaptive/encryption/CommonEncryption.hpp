@@ -56,7 +56,6 @@ namespace adaptive
                 size_t decrypt(void *, size_t, bool);
                 void decryptCtr(void *, size_t);
                 CommonEncryption::Method getMethod() const { return encryption.method; }
-                bool hasKeyID() const { return !encryption.iv.empty(); };
                 void setKeyID(void *, size_t);
 
             private:
