@@ -3,8 +3,6 @@
 
 #include <vlc_block.h>
 
-typedef struct vlc_frame_t  block_t;
-
 std::vector<unsigned char> AP4_VLC::getKeyID(block_t **pp_block) {
 
     block_t *p_block = *pp_block;
