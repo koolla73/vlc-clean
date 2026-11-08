@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+typedef struct vlc_frame_t block_t;
+
 class AP4_VLC final {
 private:
     friend class AP4_AesBlockCipher;
