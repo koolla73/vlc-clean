@@ -1,9 +1,9 @@
 #ifndef _AP4_VLC_H_
 #define _AP4_VLC_H_
 
-#include <vector>
+#include <vlc_common.h>
 
-typedef struct vlc_frame_t block_t;
+#include <vector>
 
 class AP4_VLC final {
 private:
