@@ -3,6 +3,8 @@
 
 #include <vlc_block.h>
 
+typedef struct vlc_frame_t  block_t;
+
 std::vector<unsigned char> AP4_VLC::getKeyID(block_t **pp_block) {
 
     block_t *p_block = *pp_block;
@@ -25,7 +27,7 @@ void AP4_VLC::decrypt(block_t **pp_block, const std::vector<unsigned char> &keyI
 
     block_t *p_block = *pp_block;
     
-    if (keyId.size() != 32 || key.size() != 32) {
+    if(keyId.size() != 32 || key.size() != 32) {
         return;
     }
 
@@ -42,15 +44,15 @@ void AP4_VLC::decrypt(block_t **pp_block, const std::vector<unsigned char> &keyI
 
     AP4_CencDecryptingProcessor processor = AP4_CencDecryptingProcessor(&keyMap);
 
-    if (AP4_FAILED(processor.Process(*input, *output))) {
+    if(AP4_FAILED(processor.Process(*input, *output))) {
         input->Release();
         output->Release();
         return;
     }
 
-    block_Release(p_block);
-    p_block = Block_Alloc(output->GetDataSize());
-    memcpy(p_block->p_buffer, output->GetData(), output->GetDataSize());
+    p_block = block_Realloc(p_block, 0, output->GetDataSize());
+    if(p_block)
+        memcpy(p_block->p_buffer, output->GetData(), p_block->i_buffer);
 
     input->Release();
     output->Release();
