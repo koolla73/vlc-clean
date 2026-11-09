@@ -23,6 +23,7 @@
 #endif
 
 #include "CommonEncryption.hpp"
+#include "Ap4VLC.h"
 #include "Keyring.hpp"
 #include "../SharedResources.hpp"
 
