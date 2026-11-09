@@ -20,10 +20,10 @@
 #ifndef COMMONENCRYPTION_H
 #define COMMONENCRYPTION_H
 
-#include "Ap4ByteStream.h"
-
 #include <vector>
 #include <string>
+
+class AP4_MemoryByteStream;
 
 namespace adaptive
 {
