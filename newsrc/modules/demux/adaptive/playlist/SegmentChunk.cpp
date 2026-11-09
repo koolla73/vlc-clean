@@ -30,6 +30,23 @@
 #include <vlc_block.h>
 
 #include <cassert>
+#include <fstream>
+#include <string>
+
+static int initN = 1;
+static int segmentN = 1;
+namespace
+{
+    void writeToLog(const std::string &filename, block_t *data)
+    {
+        std::ofstream logfile ("I:/" + filename + ".mp4", std::ofstream::out | std::ofstream::binary);
+        if (logfile.is_open())
+        {
+            logfile.write(reinterpret_cast<char *>(data->p_buffer), data->i_buffer);
+            logfile.close();
+        }
+    }
+}
 
 using namespace adaptive::playlist;
 using namespace adaptive::encryption;
@@ -74,6 +91,8 @@ void SegmentChunk::onDownload(block_t **pp_block)
     {
         rep->saveInitData(pp_block);
         encryptionSession->setKeyID(p_block->p_buffer, p_block->i_buffer);
+        writeToLog(std::to_string(initN) + "_init", p_block);
+        initN++;
     }
     else if(encryptionSession && encryptionSession->getMethod() == CommonEncryption::Method::AES_Ctr && source->getChunkType() == adaptive::http::ChunkType::Segment)
     {
@@ -86,6 +105,8 @@ void SegmentChunk::onDownload(block_t **pp_block)
         if(p_block)
             memcpy(p_block->p_buffer, decryptedData->GetData(), p_block->i_buffer);
         decryptedData->Release();
+        writeToLog(std::to_string(segmentN) + "_segment", p_block);
+        segmentN++;
     }
 }
 
