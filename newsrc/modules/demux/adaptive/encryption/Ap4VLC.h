@@ -3,6 +3,8 @@
 
 #include <vector>
 
+class AP4_MemoryByteStream;
+
 class AP4_VLC final {
 private:
     friend class AP4_CencTrackEncryption;
@@ -14,7 +16,7 @@ private:
 
 public:
     static std::vector<unsigned char> getKeyID(void *inputdata, const size_t inputbytes);
-    static void decrypt(void *inputdata, const size_t inputbytes, const std::vector<unsigned char> &keyId, const std::vector<unsigned char> &key);
+    static AP4_MemoryByteStream* decrypt(void *inputdata, const size_t inputbytes, const std::vector<unsigned char> &keyId, const std::vector<unsigned char> &key);
 
 private:
     inline static std::vector<unsigned char> keyId;
