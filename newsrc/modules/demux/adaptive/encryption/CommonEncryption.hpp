@@ -23,7 +23,7 @@
 #include <vector>
 #include <string>
 
-typedef struct vlc_frame_t block_t;
+class AP4_MemoryByteStream;
 
 namespace adaptive
 {
@@ -56,8 +56,8 @@ namespace adaptive
                 bool start(SharedResources *, const CommonEncryption &);
                 void close();
                 size_t decrypt(void *, size_t, bool);
-                void decryptCtr(block_t **);
-                void setKeyID(block_t **);
+                AP4_MemoryByteStream* decryptCtr(void *inputdata, const size_t inputbytes);
+                void setKeyID(void *inputdata, const size_t inputbytes);
                 CommonEncryption::Method getMethod() const { return encryption.method; }
 
             private:
