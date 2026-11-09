@@ -1,8 +1,6 @@
 #include "Ap4.h"
 #include "Ap4VLC.h"
 
-#include <vlc_block.h>
-
 std::vector<unsigned char> AP4_VLC::getKeyID(block_t **pp_block) {
 
     block_t *p_block = *pp_block;
