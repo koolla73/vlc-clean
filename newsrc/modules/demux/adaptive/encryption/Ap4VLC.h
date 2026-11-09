@@ -2,6 +2,7 @@
 #define _AP4_VLC_H_
 
 #include <vlc_common.h>
+#include <vlc_block.h>
 
 #include <vector>
 
