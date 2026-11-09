@@ -13,7 +13,7 @@ private:
     AP4_VLC& operator=(AP4_VLC&& other) = delete;
 
 public:
-    static std::vector<unsigned char> getKeyID(void *, size_t);
+    static std::vector<unsigned char> getKeyID(void *inputdata, const size_t inputbytes);
     static void decrypt(void *inputdata, const size_t inputbytes, const std::vector<unsigned char> &keyId, const std::vector<unsigned char> &key);
 
 private:
