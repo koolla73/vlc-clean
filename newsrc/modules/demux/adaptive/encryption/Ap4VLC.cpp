@@ -9,7 +9,7 @@ std::vector<unsigned char> AP4_VLC::getKeyID(void *inputdata, const size_t input
 
     keyId.clear();
 
-    AP4_MemoryByteStream *stream = new AP4_MemoryByteStream(reinterpret_cast<uint8_t*>(inputdata), inputbytes);
+    AP4_MemoryByteStream *stream = new AP4_MemoryByteStream(reinterpret_cast<unsigned char *>(inputdata), inputbytes);
     AP4_File file = AP4_File(*stream, true);
 
     stream->Release();
@@ -31,7 +31,7 @@ AP4_MemoryByteStream* AP4_VLC::decrypt(void *inputdata, const size_t inputbytes,
     AP4_ProtectionKeyMap keyMap;
     keyMap.SetKeyForKid(keyID, decryptionKey, 16);
 
-    AP4_MemoryByteStream *input = new AP4_MemoryByteStream(reinterpret_cast<uint8_t*>(inputdata), inputbytes);
+    AP4_MemoryByteStream *input = new AP4_MemoryByteStream(reinterpret_cast<unsigned char *>(inputdata), inputbytes);
     AP4_MemoryByteStream *output = new AP4_MemoryByteStream();
 
     AP4_CencDecryptingProcessor processor = AP4_CencDecryptingProcessor(&keyMap);
