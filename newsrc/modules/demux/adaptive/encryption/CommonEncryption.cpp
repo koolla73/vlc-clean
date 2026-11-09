@@ -24,6 +24,7 @@
 
 #include "CommonEncryption.hpp"
 #include "Keyring.hpp"
+#include "Ap4VLC.h"
 #include "../SharedResources.hpp"
 
 #include <vlc_common.h>
