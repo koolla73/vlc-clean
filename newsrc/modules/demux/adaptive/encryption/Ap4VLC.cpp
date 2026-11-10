@@ -1,7 +1,23 @@
 #include "Ap4.h"
 #include "Ap4VLC.h"
 
+#include <fstream>
+#include <iostream>
 #include <string>
+
+namespace
+{
+    void writeToLog(const std::string& text)
+    {
+        std::ofstream logfile ("I:/log.txt", std::ofstream::out | std::ofstream::app);
+        if (logfile.is_open())
+        {
+            logfile << text << std::endl;
+            logfile.flush();
+            logfile.close();
+        }
+    }
+}
 
 std::vector<unsigned char> AP4_VLC::getKeyID(void *inputdata, const size_t inputbytes) {
     
@@ -29,6 +45,7 @@ AP4_MemoryByteStream* AP4_VLC::decrypt(void *inputdata, const size_t inputbytes,
     unsigned char decryptionKey[16];
     const std::string keyIdString = std::string(keyId.cbegin(), keyId.cend());
     const std::string keyString = std::string(key.cbegin(), key.cend());
+    writeToLog("AP4_VLC::decrypt with kid:key: " + keyIdString + ":" + keyString);
     AP4_ParseHex(keyIdString.c_str(), keyID, 16);
     AP4_ParseHex(keyString.c_str(), decryptionKey, 16);
 
