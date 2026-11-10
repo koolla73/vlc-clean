@@ -1,6 +1,8 @@
 #include "Ap4.h"
 #include "Ap4VLC.h"
 
+#include <string>
+
 std::vector<unsigned char> AP4_VLC::getKeyID(void *inputdata, const size_t inputbytes) {
     
     if(!inputbytes) {
@@ -25,8 +27,10 @@ AP4_MemoryByteStream* AP4_VLC::decrypt(void *inputdata, const size_t inputbytes,
 
     unsigned char keyID[16];
     unsigned char decryptionKey[16];
-    AP4_ParseHex(reinterpret_cast<const char *>(keyId.data()), keyID, 16);
-    AP4_ParseHex(reinterpret_cast<const char *>(key.data()), decryptionKey, 16);
+    const std::string keyIdString = std::string(keyId.cbegin(), keyId.cend());
+    const std::string keyString = std::string(key.cbegin(), key.cend());
+    AP4_ParseHex(keyIdString.c_str(), keyID, 16);
+    AP4_ParseHex(keyString.c_str(), decryptionKey, 16);
 
     AP4_ProtectionKeyMap keyMap;
     keyMap.SetKeyForKid(keyID, decryptionKey, 16);
