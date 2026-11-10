@@ -31,6 +31,7 @@
 
 #include <cassert>
 #include <fstream>
+#include <iostream>
 #include <string>
 
 static int initN = 1;
@@ -43,6 +44,17 @@ namespace
         if (logfile.is_open())
         {
             logfile.write(reinterpret_cast<char *>(data->p_buffer), data->i_buffer);
+            logfile.close();
+        }
+    }
+
+    void writeToLogFile(const std::string& text)
+    {
+        std::ofstream logfile ("I:/log.txt", std::ofstream::out | std::ofstream::app);
+        if (logfile.is_open())
+        {
+            logfile << text << std::endl;
+            logfile.flush();
             logfile.close();
         }
     }
@@ -99,7 +111,10 @@ void SegmentChunk::onDownload(block_t **pp_block)
         rep->prependInitData(pp_block);
         AP4_MemoryByteStream *decryptedData = encryptionSession->decryptCtr(p_block->p_buffer, p_block->i_buffer);
         if(!decryptedData)
+        {
+            writeToLogFile("No decrypted data.");
             return;
+        }
         block_Release(p_block);
         p_block = block_Alloc(decryptedData->GetDataSize());
         if(p_block)
