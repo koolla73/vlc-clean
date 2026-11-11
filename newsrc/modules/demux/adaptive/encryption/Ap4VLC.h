@@ -1,6 +1,7 @@
 #ifndef _AP4_VLC_H_
 #define _AP4_VLC_H_
 
+#include <string>
 #include <vector>
 
 typedef struct vlc_frame_t block_t;
@@ -15,11 +16,11 @@ private:
     AP4_VLC& operator=(AP4_VLC&& other) = delete;
 
 public:
-    static std::vector<unsigned char> getKeyID(block_t **);
-    static void decrypt(block_t **pp_block, const std::vector<unsigned char> &keyId, const std::vector<unsigned char> &key);
+    static std::string getKeyID(block_t **);
+    static void decrypt(block_t **pp_block, const std::string &keyId, const std::vector<unsigned char> &key);
 
 private:
-    inline static std::vector<unsigned char> keyId;
+    inline static std::string keyId;
 };
 
 #endif // !_AP4_VLC_H_
