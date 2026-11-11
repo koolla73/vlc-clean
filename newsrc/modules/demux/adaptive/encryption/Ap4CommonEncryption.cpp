@@ -56,8 +56,25 @@
 #include "Ap4Ac4Parser.h"
 #include "Ap4VLC.h"
 
+#include <fstream>
 #include <iomanip>
+#include <iostream>
 #include <sstream>
+#include <string>
+
+namespace
+{
+    void writeToLog(const std::string& text)
+    {
+        std::ofstream logfile ("I:/log.txt", std::ofstream::out | std::ofstream::app);
+        if (logfile.is_open())
+        {
+            logfile << text << std::endl;
+            logfile.flush();
+            logfile.close();
+        }
+    }
+}
 
 /*----------------------------------------------------------------------
 |   constants
@@ -2625,6 +2642,8 @@ AP4_CencTrackEncryption::Parse(AP4_ByteStream& stream)
         stringStream << std::hex << std::setfill('0') << std::setw(2) << static_cast<int>(m_DefaultKid[i]);
     const std::string keyIdString = stringStream.str();
     AP4_VLC::keyId = std::vector<unsigned char>(keyIdString.cbegin(), keyIdString.cend());
+	const std::string newKey(AP4_VLC::keyId.cbegin(), AP4_VLC::keyId.cend());
+	writeToLog("AP4 key ID: " + keyIdString + "\n" + "Vector size: " + std::to_string(AP4_VLC::keyId.size()) + "\n" + "Vector content converted to string: " + newKey);
     if (m_DefaultPerSampleIvSize == 0) {
         result = stream.ReadUI08(m_DefaultConstantIvSize);
         if (AP4_FAILED(result)) return result;
