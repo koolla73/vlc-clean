@@ -3,7 +3,7 @@
 
 #include <vlc_block.h>
 
-std::vector<unsigned char> AP4_VLC::getKeyID(block_t **pp_block) {
+std::string AP4_VLC::getKeyID(block_t **pp_block) {
 
     block_t *p_block = *pp_block;
     
@@ -21,7 +21,7 @@ std::vector<unsigned char> AP4_VLC::getKeyID(block_t **pp_block) {
     return keyId;
 }
 
-void AP4_VLC::decrypt(block_t **pp_block, const std::vector<unsigned char> &keyId, const std::vector<unsigned char> &key) {
+void AP4_VLC::decrypt(block_t **pp_block, const std::string &keyId, const std::vector<unsigned char> &key) {
 
     block_t *p_block = *pp_block;
     
@@ -31,7 +31,7 @@ void AP4_VLC::decrypt(block_t **pp_block, const std::vector<unsigned char> &keyI
 
     unsigned char keyID[16];
     unsigned char decryptionKey[16];
-    AP4_ParseHex(reinterpret_cast<const char *>(keyId.data()), keyID, 16);
+    AP4_ParseHex(keyId.c_str(), keyID, 16);
     AP4_ParseHex(reinterpret_cast<const char *>(key.data()), decryptionKey, 16);
 
     AP4_ProtectionKeyMap keyMap;
