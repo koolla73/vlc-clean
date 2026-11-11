@@ -56,6 +56,11 @@ void CommonEncryption::mergeWith(const CommonEncryption &other)
         iv = other.iv;
 }
 
+std::string CommonEncryption::getKeyID(block_t **pp_block)
+{ 
+    return AP4_VLC::getKeyID(pp_block);
+}
+
 CommonEncryptionSession::CommonEncryptionSession()
 {
     ctx = nullptr;
@@ -170,12 +175,7 @@ size_t CommonEncryptionSession::decrypt(void *inputdata, size_t inputbytes, bool
     return inputbytes;
 }
 
-void CommonEncryptionSession::decryptCtr(block_t **pp_block)
+void CommonEncryptionSession::decryptCtr(block_t **pp_block, const std::string &keyID)
 {
-    AP4_VLC::decrypt(pp_block, encryption.iv, key);
-}
-
-void CommonEncryptionSession::setKeyID(block_t **pp_block)
-{    
-    encryption.iv = AP4_VLC::getKeyID(pp_block);
+    AP4_VLC::decrypt(pp_block, keyID, key);
 }
