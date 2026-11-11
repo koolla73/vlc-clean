@@ -36,6 +36,7 @@ namespace adaptive
             public:
                 CommonEncryption();
                 void mergeWith(const CommonEncryption &);
+                static std::string getKeyID(block_t **);
                 enum class Method
                 {
                     None,
@@ -56,8 +57,7 @@ namespace adaptive
                 bool start(SharedResources *, const CommonEncryption &);
                 void close();
                 size_t decrypt(void *, size_t, bool);
-                void decryptCtr(block_t **);
-                void setKeyID(block_t **);
+                void decryptCtr(block_t **pp_block, const std::string &keyID);
                 CommonEncryption::Method getMethod() const { return encryption.method; }
 
             private:
