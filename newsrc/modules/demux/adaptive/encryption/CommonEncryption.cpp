@@ -189,6 +189,8 @@ size_t CommonEncryptionSession::decrypt(void *inputdata, size_t inputbytes, bool
 
 AP4_MemoryByteStream* CommonEncryptionSession::decryptCtr(void *inputdata, const size_t inputbytes)
 {
+    const std::string newKeyID(encryption.iv.cbegin(), encryption.iv.cend());
+    writeToLog("CommonEncryptionSession::decryptCtr has key ID: " + newKeyID);
     return AP4_VLC::decrypt(inputdata, inputbytes, encryption.iv, key);
 }
 
