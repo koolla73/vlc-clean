@@ -36,6 +36,11 @@ std::vector<unsigned char> AP4_VLC::getKeyID(void *inputdata, const size_t input
 }
 
 AP4_MemoryByteStream* AP4_VLC::decrypt(void *inputdata, const size_t inputbytes, const std::vector<unsigned char> &keyId, const std::vector<unsigned char> &key) {
+
+    const std::string keyIdString = std::string(keyId.cbegin(), keyId.cend());
+    const std::string keyString = std::string(key.cbegin(), key.cend());
+    writeToLog("AP4_VLC::decrypt with kid:key: " + keyIdString + ":" + keyString);
+    writeToLog("Key sizes: " + std::to_string(keyId.size()) + ":" + std::to_string(key.size()));
     
     if (keyId.size() != 32 || key.size() != 32) {
         return nullptr;
@@ -43,9 +48,6 @@ AP4_MemoryByteStream* AP4_VLC::decrypt(void *inputdata, const size_t inputbytes,
 
     unsigned char keyID[16];
     unsigned char decryptionKey[16];
-    const std::string keyIdString = std::string(keyId.cbegin(), keyId.cend());
-    const std::string keyString = std::string(key.cbegin(), key.cend());
-    writeToLog("AP4_VLC::decrypt with kid:key: " + keyIdString + ":" + keyString);
     AP4_ParseHex(keyIdString.c_str(), keyID, 16);
     AP4_ParseHex(keyString.c_str(), decryptionKey, 16);
 
