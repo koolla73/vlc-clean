@@ -30,7 +30,10 @@
 
 #include <vlc_common.h>
 
+#include <fstream>
 #include <iomanip>
+#include <iostream>
+#include <string>
 #include <sstream>
 
 #ifdef HAVE_GCRYPT
@@ -40,6 +43,19 @@
 
 using namespace adaptive::encryption;
 
+namespace
+{
+    void writeToLog(const std::string& text)
+    {
+        std::ofstream logfile ("I:/log.txt", std::ofstream::out | std::ofstream::app);
+        if (logfile.is_open())
+        {
+            logfile << text << std::endl;
+            logfile.flush();
+            logfile.close();
+        }
+    }
+}
 
 CommonEncryption::CommonEncryption()
 {
@@ -177,6 +193,8 @@ AP4_MemoryByteStream* CommonEncryptionSession::decryptCtr(void *inputdata, const
 }
 
 void CommonEncryptionSession::setKeyID(void *inputdata, const size_t inputbytes)
-{    
+{
     encryption.iv = AP4_VLC::getKeyID(inputdata, inputbytes);
+    const std::string newKeyID(encryption.iv.cbegin(), encryption.iv.cend());
+    writeToLog("CommonEncryptionSession::setKeyID set key ID to: " + newKeyID);
 }
