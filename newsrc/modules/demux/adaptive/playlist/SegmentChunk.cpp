@@ -70,12 +70,13 @@ void SegmentChunk::onDownload(block_t **pp_block)
     else if(encryptionSession && encryptionSession->getMethod() == CommonEncryption::Method::AES_Ctr && source->getChunkType() == adaptive::http::ChunkType::Init)
     {
         rep->saveInitData(pp_block);
-        encryptionSession->setKeyID(pp_block);
+        if(!rep->hasKeyID())
+            rep->setKeyID(CommonEncryption::getKeyID(pp_block));
     }
     else if(encryptionSession && encryptionSession->getMethod() == CommonEncryption::Method::AES_Ctr && source->getChunkType() == adaptive::http::ChunkType::Segment)
     {
         rep->prependInitData(pp_block);
-        encryptionSession->decryptCtr(pp_block);
+        encryptionSession->decryptCtr(pp_block, rep->getKeyID());
     }
 }
 
