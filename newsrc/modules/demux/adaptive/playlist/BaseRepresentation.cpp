@@ -185,6 +185,16 @@ void BaseRepresentation::prependInitData(block_t **segment) const
     }
 }
 
+void BaseRepresentation::setKeyID(const std::string &keyID)
+{
+   this->keyID = keyID;
+}
+
+bool BaseRepresentation::hasKeyID() const
+{
+   return !keyID.empty();
+}
+
 vlc_tick_t BaseRepresentation::getMinAheadTime(uint64_t curnum) const
 {
     AbstractSegmentBaseType *profile = inheritSegmentTemplate();
