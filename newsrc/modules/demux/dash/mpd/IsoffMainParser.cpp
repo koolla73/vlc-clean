@@ -429,11 +429,11 @@ void    IsoffMainParser::parseRepresentations (MPD *mpd, Node *adaptationSetNode
                 currentRepresentation->addAttribute(base);
         }
 
-        if(method != adaptive::encryption::CommonEncryption::Method::None)
+        if(encryptionMethod != adaptive::encryption::CommonEncryption::Method::None)
         {
             adaptive::encryption::CommonEncryption encryption;
-            encryption.method = method;
-            encryption.uri = url;
+            encryption.method = encryptionMethod;
+            encryption.uri = uri;
             currentRepresentation->setEncryption(encryption);
         }
 
