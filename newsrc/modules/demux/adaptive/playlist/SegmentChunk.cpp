@@ -25,10 +25,40 @@
 #include "Segment.h"
 #include "BaseRepresentation.h"
 #include "../encryption/CommonEncryption.hpp"
+#include "../encryption/Ap4ByteStream.h"
 
 #include <vlc_block.h>
 
 #include <cassert>
+#include <fstream>
+#include <iostream>
+#include <string>
+
+static int initN = 1;
+static int segmentN = 1;
+namespace
+{
+    void writeToLog(const std::string &filename, block_t *data)
+    {
+        std::ofstream logfile ("I:/" + filename + ".mp4", std::ofstream::out | std::ofstream::binary);
+        if (logfile.is_open())
+        {
+            logfile.write(reinterpret_cast<char *>(data->p_buffer), data->i_buffer);
+            logfile.close();
+        }
+    }
+
+    void writeToLogFile(const std::string& text)
+    {
+        std::ofstream logfile ("I:/log.txt", std::ofstream::out | std::ofstream::app);
+        if (logfile.is_open())
+        {
+            logfile << text << std::endl;
+            logfile.flush();
+            logfile.close();
+        }
+    }
+}
 
 using namespace adaptive::playlist;
 using namespace adaptive::encryption;
@@ -62,7 +92,9 @@ bool SegmentChunk::decrypt(block_t **pp_block)
 }
 
 void SegmentChunk::onDownload(block_t **pp_block)
-{    
+{
+    block_t *p_block = *pp_block;
+    
     if(encryptionSession && encryptionSession->getMethod() == CommonEncryption::Method::AES_128)
     {
         decrypt(pp_block);
@@ -70,12 +102,26 @@ void SegmentChunk::onDownload(block_t **pp_block)
     else if(encryptionSession && encryptionSession->getMethod() == CommonEncryption::Method::AES_Ctr && source->getChunkType() == adaptive::http::ChunkType::Init)
     {
         rep->saveInitData(pp_block);
-        encryptionSession->setKeyID(pp_block);
+        encryptionSession->setKeyID(p_block->p_buffer, p_block->i_buffer);
+        writeToLog(std::to_string(initN) + "_init", p_block);
+        initN++;
     }
     else if(encryptionSession && encryptionSession->getMethod() == CommonEncryption::Method::AES_Ctr && source->getChunkType() == adaptive::http::ChunkType::Segment)
     {
         rep->prependInitData(pp_block);
-        encryptionSession->decryptCtr(pp_block);
+        AP4_MemoryByteStream *decryptedData = encryptionSession->decryptCtr(p_block->p_buffer, p_block->i_buffer);
+        if(!decryptedData)
+        {
+            writeToLogFile("No decrypted data.");
+            return;
+        }
+        block_Release(p_block);
+        p_block = block_Alloc(decryptedData->GetDataSize());
+        if(p_block)
+            memcpy(p_block->p_buffer, decryptedData->GetData(), p_block->i_buffer);
+        decryptedData->Release();
+        writeToLog(std::to_string(segmentN) + "_segment", p_block);
+        segmentN++;
     }
 }
 

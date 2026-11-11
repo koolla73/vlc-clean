@@ -23,13 +23,17 @@
 #endif
 
 #include "CommonEncryption.hpp"
+#include "Ap4ByteStream.h"
 #include "Ap4VLC.h"
 #include "Keyring.hpp"
 #include "../SharedResources.hpp"
 
 #include <vlc_common.h>
 
+#include <fstream>
 #include <iomanip>
+#include <iostream>
+#include <string>
 #include <sstream>
 
 #ifdef HAVE_GCRYPT
@@ -39,6 +43,19 @@
 
 using namespace adaptive::encryption;
 
+namespace
+{
+    void writeToLog(const std::string& text)
+    {
+        std::ofstream logfile ("I:/log.txt", std::ofstream::out | std::ofstream::app);
+        if (logfile.is_open())
+        {
+            logfile << text << std::endl;
+            logfile.flush();
+            logfile.close();
+        }
+    }
+}
 
 CommonEncryption::CommonEncryption()
 {
@@ -170,12 +187,16 @@ size_t CommonEncryptionSession::decrypt(void *inputdata, size_t inputbytes, bool
     return inputbytes;
 }
 
-void CommonEncryptionSession::decryptCtr(block_t **pp_block)
+AP4_MemoryByteStream* CommonEncryptionSession::decryptCtr(void *inputdata, const size_t inputbytes)
 {
-    AP4_VLC::decrypt(pp_block, encryption.iv, key);
+    const std::string newKeyID(encryption.iv.cbegin(), encryption.iv.cend());
+    writeToLog("CommonEncryptionSession::decryptCtr has key ID: " + newKeyID);
+    return AP4_VLC::decrypt(inputdata, inputbytes, encryption.iv, key);
 }
 
-void CommonEncryptionSession::setKeyID(block_t **pp_block)
-{    
-    encryption.iv = AP4_VLC::getKeyID(pp_block);
+void CommonEncryptionSession::setKeyID(void *inputdata, const size_t inputbytes)
+{
+    encryption.iv = AP4_VLC::getKeyID(inputdata, inputbytes);
+    const std::string newKeyID(encryption.iv.cbegin(), encryption.iv.cend());
+    writeToLog("CommonEncryptionSession::setKeyID set key ID to: " + newKeyID);
 }
