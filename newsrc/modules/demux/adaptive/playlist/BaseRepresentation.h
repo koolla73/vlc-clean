@@ -69,6 +69,7 @@ namespace adaptive
                 void                saveInitData            (block_t **);
                 void                prependInitData         (block_t **) const;
                 void                setKeyID                (const std::string &);
+                std::string         getKeyID                () const;
                 bool                hasKeyID                () const;
 
                 virtual vlc_tick_t  getMinAheadTime         (uint64_t) const;
