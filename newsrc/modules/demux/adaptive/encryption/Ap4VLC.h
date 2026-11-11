@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-typedef struct vlc_frame_t block_t;
+class AP4_MemoryByteStream;
 
 class AP4_VLC final {
 private:
@@ -16,8 +16,8 @@ private:
     AP4_VLC& operator=(AP4_VLC&& other) = delete;
 
 public:
-    static std::string getKeyID(block_t **);
-    static void decrypt(block_t **pp_block, const std::string &keyId, const std::vector<unsigned char> &key);
+    static std::string getKeyID(void *inputdata, const size_t inputbytes);
+    static AP4_MemoryByteStream* decrypt(void *inputdata, const size_t inputbytes, const std::string &keyId, const std::vector<unsigned char> &key);
 
 private:
     inline static std::string keyId;
