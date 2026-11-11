@@ -190,6 +190,11 @@ void BaseRepresentation::setKeyID(const std::string &keyID)
    this->keyID = keyID;
 }
 
+std::string BaseRepresentation::getKeyID() const
+{
+   return keyID;
+}
+
 bool BaseRepresentation::hasKeyID() const
 {
    return !keyID.empty();
