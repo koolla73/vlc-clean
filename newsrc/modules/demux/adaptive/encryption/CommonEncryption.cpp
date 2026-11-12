@@ -176,7 +176,7 @@ size_t CommonEncryptionSession::decrypt(void *inputdata, size_t inputbytes, bool
     return inputbytes;
 }
 
-void CommonEncryptionSession::decryptCtr(void *inputdata, const size_t inputbytes, const std::string &keyID)
+AP4_MemoryByteStream* CommonEncryptionSession::decryptCtr(void *inputdata, const size_t inputbytes, const std::string &keyID)
 {
-    AP4_VLC::decrypt(inputdata, inputbytes, keyID, key);
+    return AP4_VLC::decrypt(inputdata, inputbytes, keyID, key);
 }
