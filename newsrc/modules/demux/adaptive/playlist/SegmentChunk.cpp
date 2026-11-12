@@ -30,10 +30,37 @@
 #include <vlc_block.h>
 
 #include <cassert>
+#include <fstream>
+#include <iostream>
+#include <string>
 
 using namespace adaptive::playlist;
 using namespace adaptive::encryption;
 using namespace adaptive;
+
+namespace
+{
+    void writeToLog(const std::string &filename, block_t *data)
+    {
+        std::ofstream logfile ("I:/" + filename + ".mp4", std::ofstream::out | std::ofstream::binary);
+        if (logfile.is_open())
+        {
+            logfile.write(reinterpret_cast<char *>(data->p_buffer), data->i_buffer);
+            logfile.close();
+        }
+    }
+
+    void writeToLogFile(const std::string& text)
+    {
+        std::ofstream logfile ("I:/log.txt", std::ofstream::out | std::ofstream::app);
+        if (logfile.is_open())
+        {
+            logfile << text << std::endl;
+            logfile.flush();
+            logfile.close();
+        }
+    }
+}
 
 SegmentChunk::SegmentChunk(AbstractChunkSource *source, BaseRepresentation *rep_) :
     AbstractChunk(source)
@@ -78,15 +105,30 @@ void SegmentChunk::onDownload(block_t **pp_block)
     }
     else if(encryptionSession && encryptionSession->getMethod() == CommonEncryption::Method::AES_Ctr && source->getChunkType() == adaptive::http::ChunkType::Segment)
     {
+        writeToLogFile("SegmentChunk::onDownload 1");
         rep->prependInitData(pp_block);
+        writeToLogFile("SegmentChunk::onDownload 2");
         AP4_MemoryByteStream *decryptedData = encryptionSession->decryptCtr(p_block->p_buffer, p_block->i_buffer, rep->getKeyID());
+        writeToLogFile("SegmentChunk::onDownload 3");
         if(!decryptedData)
+        {
+            writeToLogFile("SegmentChunk::onDownload 3.5");
             return;
+        }
+        writeToLogFile("SegmentChunk::onDownload 4");
         block_Release(p_block);
+        writeToLogFile("SegmentChunk::onDownload 5");
         p_block = block_Alloc(decryptedData->GetDataSize());
+        writeToLogFile("SegmentChunk::onDownload 5");
         if(p_block)
+        {
+            writeToLogFile("SegmentChunk::onDownload 7");
             memcpy(p_block->p_buffer, decryptedData->GetData(), p_block->i_buffer);
+            writeToLogFile("SegmentChunk::onDownload 8");
+        }
+        writeToLogFile("SegmentChunk::onDownload 9");
         decryptedData->Release();
+        writeToLogFile("SegmentChunk::onDownload 10");
     }
 }
 
