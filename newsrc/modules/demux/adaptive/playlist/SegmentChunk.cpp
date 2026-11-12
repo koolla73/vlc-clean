@@ -25,7 +25,7 @@
 #include "Segment.h"
 #include "BaseRepresentation.h"
 #include "../encryption/CommonEncryption.hpp"
-#include "../encryption/Ap4ByteStream.h
+#include "../encryption/Ap4ByteStream.h"
 
 #include <vlc_block.h>
 
