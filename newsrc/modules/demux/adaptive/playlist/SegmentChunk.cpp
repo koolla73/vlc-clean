@@ -116,10 +116,11 @@ void SegmentChunk::onDownload(block_t **pp_block)
             return;
         }
         writeToLogFile("SegmentChunk::onDownload 4");
-        block_Release(p_block);
+        //block_Release(p_block);
+        block_Realloc(p_block, 0, decryptedData->GetDataSize());
         writeToLogFile("SegmentChunk::onDownload 5");
-        p_block = block_Alloc(decryptedData->GetDataSize());
-        writeToLogFile("SegmentChunk::onDownload 5");
+        //p_block = block_Alloc(decryptedData->GetDataSize());
+        //writeToLogFile("SegmentChunk::onDownload 6");
         if(p_block)
         {
             writeToLogFile("SegmentChunk::onDownload 7");
