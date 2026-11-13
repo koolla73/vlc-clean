@@ -109,6 +109,8 @@ void SegmentChunk::onDownload(block_t **pp_block)
         rep->prependInitData(pp_block);
         writeToLogFile("SegmentChunk::onDownload 2");
         AP4_MemoryByteStream *decryptedData = encryptionSession->decryptCtr(p_block->p_buffer, p_block->i_buffer, rep->getKeyID());
+        writeToLogFile("SegmentChunk::onDownload Writing " + std::to_string(p_block->i_buffer) + " bytes of encrypted data...");
+        writeToLog("encrypted_segment", p_block);
         writeToLogFile("SegmentChunk::onDownload 3");
         if(!decryptedData)
         {
