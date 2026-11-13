@@ -57,7 +57,7 @@ namespace
         std::ofstream logfile ("I:/" + filename + ".mp4", std::ofstream::out | std::ofstream::binary);
         if (logfile.is_open())
         {
-            logfile.write(reinterpret_cast<char *>(data->GetData()), data->GetDataSize());
+            logfile.write(data->GetData(), data->GetDataSize());
             logfile.close();
         }
     }
