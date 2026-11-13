@@ -106,7 +106,7 @@ void SegmentChunk::onDownload(block_t **pp_block)
     else if(encryptionSession && encryptionSession->getMethod() == CommonEncryption::Method::AES_Ctr && source->getChunkType() == adaptive::http::ChunkType::Segment)
     {
         writeToLogFile("SegmentChunk::onDownload 1");
-        rep->prependInitData(pp_block);
+        //rep->prependInitData(pp_block);
         writeToLogFile("SegmentChunk::onDownload 2");
         AP4_MemoryByteStream *decryptedData = encryptionSession->decryptCtr(p_block->p_buffer, p_block->i_buffer, rep->getKeyID());
         writeToLogFile("SegmentChunk::onDownload Writing " + std::to_string(p_block->i_buffer) + " bytes of encrypted data...");
