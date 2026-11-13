@@ -2623,8 +2623,7 @@ AP4_CencTrackEncryption::Parse(AP4_ByteStream& stream)
     std::stringstream stringStream;
     for (int i = 0; i < 16; i++)
         stringStream << std::hex << std::setfill('0') << std::setw(2) << static_cast<int>(m_DefaultKid[i]);
-    const std::string keyIdString = stringStream.str();
-    AP4_VLC::keyId = std::vector<unsigned char>(keyIdString.cbegin(), keyIdString.cend());
+    AP4_VLC::keyId = stringStream.str();
     if (m_DefaultPerSampleIvSize == 0) {
         result = stream.ReadUI08(m_DefaultConstantIvSize);
         if (AP4_FAILED(result)) return result;
