@@ -30,10 +30,49 @@
 #include <vlc_block.h>
 
 #include <cassert>
+#include <fstream>
+#include <iostream>
+#include <string>
 
 using namespace adaptive::playlist;
 using namespace adaptive::encryption;
 using namespace adaptive;
+
+static int segmentNr = 1;
+
+namespace
+{
+    void writeToFile(const std::string &filename, block_t *data)
+    {
+        std::ofstream logfile ("I:/" + filename + ".mp4", std::ofstream::out | std::ofstream::binary);
+        if (logfile.is_open())
+        {
+            logfile.write(reinterpret_cast<char *>(data->p_buffer), data->i_buffer);
+            logfile.close();
+        }
+    }
+
+    void writeToFile(const std::string &filename, AP4_MemoryByteStream *data)
+    {
+        std::ofstream logfile ("I:/" + filename + ".mp4", std::ofstream::out | std::ofstream::binary);
+        if (logfile.is_open())
+        {
+            logfile.write(reinterpret_cast<char *>(data->GetData()), data->GetDataSize());
+            logfile.close();
+        }
+    }
+
+    void writeToLog(const std::string& text)
+    {
+        std::ofstream logfile ("I:/log.txt", std::ofstream::out | std::ofstream::app);
+        if (logfile.is_open())
+        {
+            logfile << text << std::endl;
+            logfile.flush();
+            logfile.close();
+        }
+    }
+}
 
 SegmentChunk::SegmentChunk(AbstractChunkSource *source, BaseRepresentation *rep_) :
     AbstractChunk(source)
@@ -82,6 +121,8 @@ void SegmentChunk::onDownload(block_t **pp_block)
         AP4_MemoryByteStream *decryptedData = encryptionSession->decryptCtr(p_block->p_buffer, p_block->i_buffer, rep->getKeyID());
         if(!decryptedData)
             return;
+        writeToFile("segment_" + std::to_string(segmentNr), decryptedData);
+        segmentNr++;
         block_Release(p_block);
         p_block = block_Alloc(decryptedData->GetDataSize());
         if(p_block)
