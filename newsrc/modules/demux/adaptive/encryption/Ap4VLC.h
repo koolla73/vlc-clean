@@ -1,6 +1,7 @@
 #ifndef _AP4_VLC_H_
 #define _AP4_VLC_H_
 
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -21,6 +22,7 @@ public:
 
 private:
     inline static std::string keyId;
+    inline static std::mutex mutex;
 };
 
 #endif // !_AP4_VLC_H_
