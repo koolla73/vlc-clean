@@ -2,6 +2,8 @@
 #include "Ap4VLC.h"
 
 std::string AP4_VLC::getKeyID(void *inputdata, const size_t inputbytes) {
+
+    const std::lock_guard<std::mutex> lock(mutex);
     
     if(!inputbytes) {
         return { };
@@ -36,7 +38,7 @@ AP4_MemoryByteStream* AP4_VLC::decrypt(void *inputdata, const size_t inputbytes,
 
     AP4_CencDecryptingProcessor processor = AP4_CencDecryptingProcessor(&keyMap);
 
-    if (AP4_FAILED(processor.Process(*input, *output))) {
+    if (AP4_FAILED(processor.Process(*input, *output)) || !output->GetDataSize()) {
         input->Release();
         output->Release();
         return nullptr;
