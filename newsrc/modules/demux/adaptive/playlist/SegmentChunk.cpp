@@ -31,10 +31,8 @@
 #include <WinSock2.h>
 #pragma comment(lib, "ws2_32.lib")
 #else
-//#include <arpa/inet.h>
-//#include <netinet/in.h>
-//#include <winsock.h>
 #include <winsock2.h>
+#pragma comment(lib, "ws2_32.lib")
 #endif
 
 #include <vlc_block.h>
@@ -44,6 +42,7 @@
 #include <cassert>
 #include <cstdint>
 
+#define ntohll(x)   ((((std::uint64_t)ntohl(x&0xFFFFFFFF)) << 32) + ntohl(x >> 32))
 #define uint32be(header) (ntohl(*reinterpret_cast<std::uint32_t *>(header)))
 #define uint64be(header) (ntohll(*reinterpret_cast<std::uint64_t *>(header)))
 
@@ -112,10 +111,6 @@ namespace
 
     void copyMdat(AP4_MemoryByteStream *decryptedData, block_t *p_block)
     {
-        std::array<unsigned char, 4> header = { 0 };
-        std::uint32_t payloadSize = 0;
-        std::uint64_t payloadSize64 = 0;
-        std::uint64_t currentBytePosition = 0;
         std::uint64_t encryptedMdatBytePosition = 0;
         std::uint64_t encryptedMdatBoxSize = 0;
         std::uint64_t decryptedMdatBytePosition = 0;
