@@ -33,7 +33,8 @@
 #else
 //#include <arpa/inet.h>
 //#include <netinet/in.h>
-#include <winsock.h>
+//#include <winsock.h>
+#include <winsock2.h>
 #endif
 
 #include <vlc_block.h>
@@ -43,8 +44,8 @@
 #include <cassert>
 #include <cstdint>
 
-#define uint32be(header) (ntohl(*reinterpret_cast<unsigned int*>(header)))
-#define uint64be(header) (ntohll(*reinterpret_cast<unsigned long long*>(header)))
+#define uint32be(header) (ntohl(*reinterpret_cast<std::uint32_t *>(header)))
+#define uint64be(header) (ntohll(*reinterpret_cast<std::uint64_t *>(header)))
 
 using namespace adaptive::playlist;
 using namespace adaptive::encryption;
