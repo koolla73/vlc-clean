@@ -29,11 +29,91 @@
 
 #include <vlc_block.h>
 
+#include <algorithm>
+#include <array>
 #include <cassert>
+#include <cstdint>
 
 using namespace adaptive::playlist;
 using namespace adaptive::encryption;
 using namespace adaptive;
+
+namespace
+{
+    static constexpr const std::array<unsigned char, 4> mdatBox{ 'm', 'd', 'a', 't' };
+
+    std::uint32_t uint32E(std::array<unsigned char, 4>* header) {
+        return uint32be(header);
+    }
+
+    std::uint64_t uint64E(std::array<unsigned char, 4>* header) {
+        return uint64be(header);
+    }
+
+    std::uint32_t uint32E(std::array<unsigned char, 8>* header) {
+        return uint32be(header);
+    }
+
+    std::uint64_t uint64E(std::array<unsigned char, 8>* header) {
+        return uint64be(header);
+    }
+
+    void findBox(void *block, const std::uint64_t block_size, const std::array<unsigned char, 4> &box, std::uint64_t &boxPos, std::uint64_t &boxSize)
+    {
+
+        std::uint64_t currentBytePosition = 0;
+        std::array<unsigned char, 4> header = { 0 };
+        std::uint32_t payloadSize = 0;
+        std::uint64_t payloadSize64 = 0;
+
+        while (currentBytePosition < block_size)
+        {
+            std::copy_n(reinterpret_cast<unsigned char*>(block) + currentBytePosition, 4, std::begin(header));
+            payloadSize = payloadSize64 = uint32E(&header);
+            if (payloadSize == 0)
+            {
+                // Box size is whole file.
+                payloadSize64 = block_size;
+            }
+            else if (payloadSize == 1)
+            {
+                // Box size is 64-bit.
+                std::array<unsigned char, 8> header64 = { 0 };
+                std::copy_n(reinterpret_cast<unsigned char*>(block) + currentBytePosition + 4 + 4, 8, std::begin(header64));
+                payloadSize64 = uint64E(&header64);
+            }
+
+            header.fill(0);
+            std::copy_n(reinterpret_cast<unsigned char*>(block) + currentBytePosition + 4, 4, std::begin(header));
+
+            if (header == box)
+            {
+                boxPos = currentBytePosition;
+                boxSize = payloadSize64;
+            }
+
+            header.fill(0);
+            currentBytePosition += payloadSize64;
+        }
+    }
+
+    void copyMdat(AP4_MemoryByteStream *decryptedData, block_t *p_block)
+    {
+        std::array<unsigned char, 4> header = { 0 };
+        std::uint32_t payloadSize = 0;
+        std::uint64_t payloadSize64 = 0;
+        std::uint64_t currentBytePosition = 0;
+        std::uint64_t encryptedMdatBytePosition = 0;
+        std::uint64_t encryptedMdatBoxSize = 0;
+        std::uint64_t decryptedMdatBytePosition = 0;
+        std::uint64_t decryptedMdatBoxSize = 0;
+
+        findBox(p_block->p_buffer, p_block->i_buffer, mdatBox, encryptedMdatBytePosition, encryptedMdatBoxSize);
+        findBox(const_cast<unsigned char*>(decryptedData->GetData()), decryptedData->GetDataSize(), mdatBox, decryptedMdatBytePosition, decryptedMdatBoxSize);
+
+        memcpy(p_block->p_buffer + encryptedMdatBytePosition, decryptedData->GetData() + decryptedMdatBytePosition, decryptedMdatBoxSize);
+    }
+}
 
 SegmentChunk::SegmentChunk(AbstractChunkSource *source, BaseRepresentation *rep_) :
     AbstractChunk(source)
