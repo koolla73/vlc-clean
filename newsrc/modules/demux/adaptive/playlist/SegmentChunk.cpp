@@ -82,10 +82,7 @@ void SegmentChunk::onDownload(block_t **pp_block)
         AP4_MemoryByteStream *decryptedData = encryptionSession->decryptCtr(p_block->p_buffer, p_block->i_buffer, rep->getKeyID());
         if(!decryptedData)
             return;
-        block_Release(p_block);
-        p_block = block_Alloc(decryptedData->GetDataSize());
-        if(p_block)
-            memcpy(p_block->p_buffer, decryptedData->GetData(), p_block->i_buffer);
+        copyMdat(decryptedData, p_block);
         decryptedData->Release();
     }
 }
