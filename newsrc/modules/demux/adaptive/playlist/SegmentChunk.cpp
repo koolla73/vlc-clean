@@ -27,12 +27,22 @@
 #include "../encryption/CommonEncryption.hpp"
 #include "../encryption/Ap4ByteStream.h"
 
+#ifdef _MSC_VER
+#include <WinSock2.h>
+#pragma comment(lib, "ws2_32.lib")
+#else
+#include <arpa/inet.h>
+#endif
+
 #include <vlc_block.h>
 
 #include <algorithm>
 #include <array>
 #include <cassert>
 #include <cstdint>
+
+#define uint32be(header) (ntohl(*reinterpret_cast<unsigned int*>(header)))
+#define uint64be(header) (ntohll(*reinterpret_cast<unsigned long long*>(header)))
 
 using namespace adaptive::playlist;
 using namespace adaptive::encryption;
