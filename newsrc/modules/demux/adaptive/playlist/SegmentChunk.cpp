@@ -32,7 +32,8 @@
 #pragma comment(lib, "ws2_32.lib")
 #else
 //#include <arpa/inet.h>
-#include <netinet/in.h>
+//#include <netinet/in.h>
+#include <winsock.h>
 #endif
 
 #include <vlc_block.h>
