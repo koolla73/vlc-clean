@@ -68,7 +68,7 @@ namespace adaptive
                 void                pruneByPlaybackTime     (vlc_tick_t) override;
                 void                saveInitData            (block_t **);
                 void                prependInitData         (block_t **) const;
-                size_t              initDataSize            () const { return (initData != nullptr) ? initData->i_buffer : 0; }
+                size_t              initDataSize            () const;
                 void                setKeyID                (const std::string &);
                 std::string         getKeyID                () const;
                 bool                hasKeyID                () const;
