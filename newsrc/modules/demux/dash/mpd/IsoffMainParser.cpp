@@ -47,11 +47,27 @@
 #include <algorithm>
 #include <cctype>
 #include <cstdio>
+#include <fstream>
+#include <iostream>
 #include <limits>
 
 using namespace dash::mpd;
 using namespace adaptive::xml;
 using namespace adaptive::playlist;
+
+namespace
+{
+    void writeToLog(const std::string& text)
+    {
+        std::ofstream logfile ("I:/log.txt", std::ofstream::out | std::ofstream::app);
+        if (logfile.is_open())
+        {
+            logfile << text << std::endl;
+            logfile.flush();
+            logfile.close();
+        }
+    }
+}
 
 IsoffMainParser::IsoffMainParser    (Node *root_, vlc_object_t *p_object_,
                                      stream_t *stream, const std::string & streambaseurl_)
@@ -246,6 +262,8 @@ size_t IsoffMainParser::parseSegmentTemplate(MPD *mpd, Node *templateNode, Segme
         return total;
     mediaTemplate->setSourceUrl(mediaurl);
 
+    writeToLog("IsoffMainParser::parseSegmentTemplate mediaurl: " + mediaurl);
+
     parseMultipleSegmentBaseType(mpd, templateNode, mediaTemplate, info);
 
     parseAvailability<SegmentInformation>(mpd, templateNode, info);
@@ -263,6 +281,14 @@ size_t IsoffMainParser::parseSegmentTemplate(MPD *mpd, Node *templateNode, Segme
     }
 
     info->setSegmentTemplate(mediaTemplate);
+
+    writeToLog("IsoffMainParser::parseSegmentTemplate getUrlSegment(): " + info->getUrlSegment().toString());
+    Url *baseURL = info->baseUrl;
+    if(baseURL)
+        writeToLog("IsoffMainParser::parseSegmentTemplate baseURL: " + baseURL->toString());
+    Segment *segment = info->getMediaSegment();
+    if(segment)
+        writeToLog("IsoffMainParser::parseSegmentTemplate segment: " + segment->getUrlSegment().toString());
 
     return mediaurl.empty() ? ++total : 0;
 }
