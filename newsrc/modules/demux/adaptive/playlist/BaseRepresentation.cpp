@@ -191,6 +191,11 @@ void BaseRepresentation::prependInitData(block_t **pp_block) const
     block_Release(p_block_dup);
 }
 
+size_t BaseRepresentation::initDataSize() const
+{
+    return (initData != nullptr) ? initData->i_buffer : 0;
+}
+
 void BaseRepresentation::setKeyID(const std::string &keyID)
 {
    this->keyID = keyID;
