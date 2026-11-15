@@ -176,7 +176,7 @@ void SegmentChunk::onDownload(block_t **pp_block)
         block_Release(p_block);
         const size_t initSize = rep->initDataSize();
         p_block = block_Alloc(p_block_dup->i_buffer - initSize);
-        memcpy(p_block->p_buffer, p_block_dup->buffer + initSize, p_block->i_buffer);
+        memcpy(p_block->p_buffer, p_block_dup->p_buffer + initSize, p_block->i_buffer);
         block_Release(p_block_dup);
     }
 }
