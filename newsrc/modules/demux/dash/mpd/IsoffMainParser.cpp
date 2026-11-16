@@ -312,7 +312,7 @@ void    IsoffMainParser::parseAdaptationSets  (MPD *mpd, Node *periodNode, BaseP
             if ((*contentProtectionIt)->getAttributeValue("schemeIdUri") == "urn:mpeg:dash:mp4protection:2011")
             {
                 if ((*contentProtectionIt)->getAttributeValue("value") == "cenc")
-                    method = adaptive::encryption::CommonEncryption::Method::AES_Ctr;
+                    method = mpd->encryptionMethod = adaptive::encryption::CommonEncryption::Method::AES_Ctr;
                 
                 const std::string cencNS = (*contentProtectionIt)->getAttributeValue("xmlns:cenc", "http://www.w3.org/2000/xmlns/");
                 keyID = (*contentProtectionIt)->getAttributeValue("cenc:default_KID", cencNS);
