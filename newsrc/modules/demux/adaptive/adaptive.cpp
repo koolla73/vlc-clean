@@ -302,7 +302,7 @@ static PlaylistManager * HandleDash(demux_t *p_demux, DOMParser &xmlParser,
     DASHManager *manager = nullptr;
     if(!resources || !factory ||
        !(manager = new (std::nothrow) DASHManager(p_demux, resources,
-                                                  p_playlist, factory, logic)))
+                                                  p_playlist, factory, logic, p_playlist->getEncryptionMethod())))
     {
         delete resources;
         delete factory;
