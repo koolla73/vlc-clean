@@ -726,6 +726,7 @@ block_t * AbstractStream::readNextBlock()
             delete nextChunk;
             return nullptr;
         }
+        writeToLog("Chunk sizes: " + std::to_string(block->i_buffer) + " and " + std::to_string(next_block->i_buffer));
         block_t *block_dup = block_Duplicate(block);
         block_Release(block);
         block = block_Alloc(block_dup->i_buffer + next_block->i_buffer);
