@@ -711,7 +711,28 @@ block_t * AbstractStream::readNextBlock()
     {
         ChunkInterface *nextChunk = getNextChunk();
         if(nextChunk == nullptr)
-            writeToLog("AbstractStream::readNextBlock() Can't get next chunk.");
+        {
+            eof = true;
+            block_Release(block);
+            delete currentChunk;
+            return nullptr;
+        }
+        block_t *next_block = nextChunk->readBlock();
+        if(next_block == nullptr)
+        {
+            eof = true;
+            block_Release(block);
+            delete currentChunk;
+            delete nextChunk;
+            return nullptr;
+        }
+        block_t *block_dup = block_Duplicate(block);
+        block_Release(block);
+        block = block_Alloc(block_dup->i_buffer + next_block->i_buffer);
+        memcpy(block->p_buffer, block_dup->p_buffer, block_dup->i_buffer);
+        memcpy(block->p_buffer + block_dup->i_buffer, next_block->p_buffer, next_block->i_buffer);
+        block_Release(block_dup);
+        block_Release(next_block);
         delete nextChunk;
     }
     demuxfirstchunk = false;
