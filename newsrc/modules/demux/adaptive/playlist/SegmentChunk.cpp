@@ -115,6 +115,7 @@ void SegmentChunk::onDownload(block_t **pp_block)
         if(!rep->hasKeyID())
             rep->setKeyID(CommonEncryption::getKeyID(p_block->p_buffer, p_block->i_buffer));
         writeToLog("Rep Init getUrlSegment(): " + rep->getUrlSegment().toString());
+        writeToFile("init_and_segment", p_block);
         //writeToLog("Rep getMediaSegment(uint64_t = 0): " + rep->getMediaSegment()->getUrlSegment().toString());    nullptr
     }
     else if(encryptionSession && encryptionSession->getMethod() == CommonEncryption::Method::AES_Ctr && source->getChunkType() == adaptive::http::ChunkType::Segment)
