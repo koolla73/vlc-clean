@@ -1,9 +1,11 @@
 #ifndef _AP4_VLC_H_
 #define _AP4_VLC_H_
 
+#include <mutex>
+#include <string>
 #include <vector>
 
-typedef struct vlc_frame_t block_t;
+class AP4_MemoryByteStream;
 
 class AP4_VLC final {
 private:
@@ -15,11 +17,12 @@ private:
     AP4_VLC& operator=(AP4_VLC&& other) = delete;
 
 public:
-    static std::vector<unsigned char> getKeyID(block_t **);
-    static void decrypt(block_t **pp_block, const std::vector<unsigned char> &keyId, const std::vector<unsigned char> &key);
+    static std::string getKeyID(void *inputdata, const size_t inputbytes);
+    static AP4_MemoryByteStream* decrypt(void *inputdata, const size_t inputbytes, const std::string &keyId, const std::vector<unsigned char> &key);
 
 private:
-    inline static std::vector<unsigned char> keyId;
+    inline static std::string keyId;
+    inline static std::mutex mutex;
 };
 
 #endif // !_AP4_VLC_H_

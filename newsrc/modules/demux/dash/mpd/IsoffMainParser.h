@@ -77,7 +77,10 @@ namespace dash
                 void    parseMPDBaseUrl     (MPD *, xml::Node *);
                 void    parseMPDAttributes  (MPD *, xml::Node *);
                 void    parseAdaptationSets (MPD *, xml::Node *periodNode, BasePeriod *period);
-                void    parseRepresentations(MPD *, xml::Node *adaptationSetNode, AdaptationSet *adaptationSet, const encryption::CommonEncryption::Method encryptionMethod, const std::string &uri);
+                void    parseRepresentations(MPD *, xml::Node *adaptationSetNode, AdaptationSet *adaptationSet,
+                                             const encryption::CommonEncryption::Method encryptionMethod,
+                                             const std::string &keyID,
+                                             const std::string &uri);
                 void    parseInitSegment    (xml::Node *, Initializable<InitSegment> *, SegmentInformation *);
                 void    parseTimeline       (xml::Node *, AbstractMultipleSegmentBaseType *);
                 void    parsePeriods        (MPD *, xml::Node *);
