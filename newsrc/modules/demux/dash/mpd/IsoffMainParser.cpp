@@ -44,6 +44,8 @@
 #include "../../adaptive/tools/Debug.hpp"
 #include "../../adaptive/tools/Conversions.hpp"
 #include <vlc_stream.h>
+#include <algorithm>
+#include <cctype>
 #include <cstdio>
 #include <limits>
 
@@ -300,6 +302,7 @@ void    IsoffMainParser::parseAdaptationSets  (MPD *mpd, Node *periodNode, BaseP
         parseCommonAttributesElements(*it, adaptationSet);
 
         adaptive::encryption::CommonEncryption::Method method = adaptive::encryption::CommonEncryption::Method::None;
+        std::string keyID;
         std::string url;
 
         const std::vector<Node *> contentProtections = DOMHelper::getElementByTagName((*it), "ContentProtection", getDASHNamespace(), false);
@@ -310,6 +313,11 @@ void    IsoffMainParser::parseAdaptationSets  (MPD *mpd, Node *periodNode, BaseP
             {
                 if ((*contentProtectionIt)->getAttributeValue("value") == "cenc")
                     method = adaptive::encryption::CommonEncryption::Method::AES_Ctr;
+                
+                const std::string cencNS = (*contentProtectionIt)->getAttributeValue("xmlns:cenc", "http://www.w3.org/2000/xmlns/");
+                keyID = (*contentProtectionIt)->getAttributeValue("cenc:default_KID", cencNS);
+                keyID.erase(std::remove(keyID.begin(), keyID.end(), '-'), keyID.end());
+                std::transform(keyID.begin(), keyID.end(), keyID.begin(), [](unsigned char c){ return std::tolower(c); });
             }
             else if ((*contentProtectionIt)->getAttributeValue("schemeIdUri") == "urn:uuid:e2719d58-a985-b3c9-781a-b030af78d30e")
             {
@@ -363,7 +371,7 @@ void    IsoffMainParser::parseAdaptationSets  (MPD *mpd, Node *periodNode, BaseP
 
         parseSegmentInformation(mpd, *it, adaptationSet, &nextid);
 
-        parseRepresentations(mpd, (*it), adaptationSet, method, url);
+        parseRepresentations(mpd, (*it), adaptationSet, method, keyID, url);
 
 #ifdef ADAPTATIVE_ADVANCED_DEBUG
         if(adaptationSet->description.empty())
@@ -390,7 +398,8 @@ void IsoffMainParser::parseCommonAttributesElements(Node *node,
         commonAttrElements->setMimeType(node->getAttributeValue("mimeType"));
 }
 
-void    IsoffMainParser::parseRepresentations (MPD *mpd, Node *adaptationSetNode, AdaptationSet *adaptationSet, const encryption::CommonEncryption::Method encryptionMethod, const std::string &uri)
+void    IsoffMainParser::parseRepresentations (MPD *mpd, Node *adaptationSetNode, AdaptationSet *adaptationSet,
+                                               const encryption::CommonEncryption::Method encryptionMethod, const std::string &keyID, const std::string &url)
 {
     std::vector<Node *> representations = DOMHelper::getElementByTagName(adaptationSetNode, "Representation", getDASHNamespace(), false);
     uint64_t nextid = 0;
@@ -433,8 +442,9 @@ void    IsoffMainParser::parseRepresentations (MPD *mpd, Node *adaptationSetNode
         {
             adaptive::encryption::CommonEncryption encryption;
             encryption.method = encryptionMethod;
-            encryption.uri = uri;
+            encryption.uri = url;
             currentRepresentation->setEncryption(encryption);
+            currentRepresentation->setKeyID(keyID);
         }
 
         adaptationSet->addRepresentation(currentRepresentation);

@@ -23,6 +23,7 @@
 #endif
 
 #include "CommonEncryption.hpp"
+#include "Ap4ByteStream.h"
 #include "Ap4VLC.h"
 #include "Keyring.hpp"
 #include "../SharedResources.hpp"
@@ -54,6 +55,11 @@ void CommonEncryption::mergeWith(const CommonEncryption &other)
         uri = other.uri;
     if(iv.empty() && !other.iv.empty())
         iv = other.iv;
+}
+
+std::string CommonEncryption::getKeyID(void *inputdata, const size_t inputbytes)
+{ 
+    return AP4_VLC::getKeyID(inputdata, inputbytes);
 }
 
 CommonEncryptionSession::CommonEncryptionSession()
@@ -170,12 +176,7 @@ size_t CommonEncryptionSession::decrypt(void *inputdata, size_t inputbytes, bool
     return inputbytes;
 }
 
-void CommonEncryptionSession::decryptCtr(block_t **pp_block)
+AP4_MemoryByteStream* CommonEncryptionSession::decryptCtr(void *inputdata, const size_t inputbytes, const std::string &keyID)
 {
-    AP4_VLC::decrypt(pp_block, encryption.iv, key);
-}
-
-void CommonEncryptionSession::setKeyID(block_t **pp_block)
-{    
-    encryption.iv = AP4_VLC::getKeyID(pp_block);
+    return AP4_VLC::decrypt(inputdata, inputbytes, keyID, key);
 }
