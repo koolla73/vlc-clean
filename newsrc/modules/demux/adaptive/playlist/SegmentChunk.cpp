@@ -25,6 +25,7 @@
 #include "Segment.h"
 #include "BaseRepresentation.h"
 #include "../encryption/CommonEncryption.hpp"
+#include "../encryption/Ap4ByteStream.h"
 
 #include <vlc_block.h>
 
@@ -69,13 +70,29 @@ void SegmentChunk::onDownload(block_t **pp_block)
     }
     else if(encryptionSession && encryptionSession->getMethod() == CommonEncryption::Method::AES_Ctr && source->getChunkType() == adaptive::http::ChunkType::Init)
     {
+        block_t *p_block = *pp_block;
+        
         rep->saveInitData(pp_block);
-        encryptionSession->setKeyID(pp_block);
+        if(!rep->hasKeyID())
+            rep->setKeyID(CommonEncryption::getKeyID(p_block->p_buffer, p_block->i_buffer));
+
+        block_Release(p_block);
+        p_block = block_Alloc(0);
     }
     else if(encryptionSession && encryptionSession->getMethod() == CommonEncryption::Method::AES_Ctr && source->getChunkType() == adaptive::http::ChunkType::Segment)
     {
+        block_t *p_block = *pp_block;
+        
         rep->prependInitData(pp_block);
-        encryptionSession->decryptCtr(pp_block);
+        AP4_MemoryByteStream *decryptedData = encryptionSession->decryptCtr(p_block->p_buffer, p_block->i_buffer, rep->getKeyID());
+        if(!decryptedData)
+            return;
+        
+        block_Release(p_block);
+        p_block = block_Alloc(decryptedData->GetDataSize());
+        if(p_block)
+            memcpy(p_block->p_buffer, decryptedData->GetData(), p_block->i_buffer);
+        decryptedData->Release();
     }
 }
 
