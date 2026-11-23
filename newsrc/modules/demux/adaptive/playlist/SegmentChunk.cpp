@@ -167,7 +167,7 @@ void SegmentChunk::onDownload(block_t **pp_block)
 #endif
         decryptedData->Release();
 #if (DEBUG == 1)
-        writeToLog("void SegmentChunk::onDownload(block_t **pp_block) Done!");
+        writeToLog("void SegmentChunk::onDownload(block_t **pp_block) Done! Wrote " + std::to_string(p_block->i_buffer) + " bytes.");
 #endif
     }
 }
