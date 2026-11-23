@@ -62,6 +62,11 @@ std::string CommonEncryption::getKeyID(void *inputdata, const size_t inputbytes)
     return VLC_AP4::getKeyID(inputdata, inputbytes);
 }
 
+AP4_MemoryByteStream* CommonEncryption::modifyInit(void *inputdata, const size_t inputbytes)
+{ 
+    return VLC_AP4::modifyInit(inputdata, inputbytes);
+}
+
 CommonEncryptionSession::CommonEncryptionSession()
 {
     ctx = nullptr;
