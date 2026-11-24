@@ -104,7 +104,11 @@ bool SegmentChunk::decrypt(block_t **pp_block)
 }
 
 void SegmentChunk::onDownload(block_t **pp_block)
-{    
+{
+#if (DEBUG == 1)
+        writeToLog("void SegmentChunk::onDownload(block_t **pp_block) 00");
+#endif
+    
     if(encryptionSession && encryptionSession->getMethod() == CommonEncryption::Method::AES_128)
     {
         decrypt(pp_block);
