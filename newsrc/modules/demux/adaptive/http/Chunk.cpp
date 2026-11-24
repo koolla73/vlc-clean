@@ -34,11 +34,28 @@
 #include <vlc_block.h>
 
 #include <algorithm>
+#include <fstream>
+#include <iostream>
+#include <string>
 
 using namespace adaptive::http;
 using vlc::threads::mutex_locker;
 
 static std::string EmptyStr = "";
+
+namespace
+{
+    void writeToLog(const std::string& text)
+    {
+        std::ofstream logfile ("I:/log.txt", std::ofstream::out | std::ofstream::app);
+        if (logfile.is_open())
+        {
+            logfile << text << std::endl;
+            logfile.flush();
+            logfile.close();
+        }
+    }
+}
 
 AbstractChunkSource::AbstractChunkSource(ChunkType t, const BytesRange &range)
 {
@@ -127,6 +144,7 @@ block_t * AbstractChunk::doRead(size_t size, bool b_block)
         bytesRead += block->i_buffer;
         onDownload(&block);
         block->i_flags &= ~BLOCK_FLAG_HEADER;
+        writeToLog("AbstractChunk::doRead(size_t size, bool b_block) Done!");
     }
 
     return block;
@@ -217,6 +235,9 @@ block_t * HTTPChunkSource::read(size_t readsize)
 
     if(contentLength && readsize > contentLength - consumed)
         readsize = contentLength - consumed;
+
+    if(contentLength)
+        readsize = contentLength;
 
     block_t *p_block = block_Alloc(readsize);
     if(!p_block)
