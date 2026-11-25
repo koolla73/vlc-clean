@@ -180,7 +180,7 @@ size_t CommonEncryptionSession::decrypt(void *inputdata, size_t inputbytes, bool
     return inputbytes;
 }
 
-void CommonEncryptionSession::decryptCtr(void *inputdata, const size_t inputbytes, const std::string &keyID)
+void CommonEncryptionSession::decryptCtr(void *inputdata, const size_t inputbytes, const std::string &keyID, void *originaldata, const size_t originalbytes)
 {
-    VLC_AP4::decrypt(inputdata, inputbytes, keyID, key);
+    VLC_AP4::decrypt(inputdata, inputbytes, keyID, key, originaldata, originalbytes);
 }
