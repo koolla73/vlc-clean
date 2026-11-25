@@ -58,7 +58,7 @@ namespace adaptive
                 bool start(SharedResources *, const CommonEncryption &);
                 void close();
                 size_t decrypt(void *, size_t, bool);
-                AP4_MemoryByteStream* decryptCtr(void *inputdata, const size_t inputbytes, const std::string &keyID);
+                void decryptCtr(void *inputdata, const size_t inputbytes, const std::string &keyID);
                 CommonEncryption::Method getMethod() const { return encryption.method; }
 
             private:
