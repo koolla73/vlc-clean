@@ -67,7 +67,7 @@ namespace adaptive
                 void                getCodecsDesc           (CodecDescriptionList *) const;
                 void                pruneByPlaybackTime     (vlc_tick_t) override;
                 void                saveInitData            (block_t **);
-                void                prependInitData         (block_t **) const;
+                block_t             *prependInitData        (block_t **) const;
                 void                setKeyID                (const std::string &);
                 std::string         getKeyID                () const;
                 bool                hasKeyID                () const;
