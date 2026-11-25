@@ -22,7 +22,7 @@ private:
 
 public:
     static std::string getKeyID(void *, const size_t);
-    static void decrypt(void *inputdata, const size_t inputbytes, const std::string &keyId, const std::vector<unsigned char> &key);
+    static void decrypt(void *inputdata, const size_t inputbytes, const std::string &keyId, const std::vector<unsigned char> &key, void *originaldata, const size_t originalbytes);
     static void modifyInit(void *, const size_t);
 
 private:
