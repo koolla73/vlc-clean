@@ -183,10 +183,10 @@ void VLC_AP4::decrypt(void *inputdata, const size_t inputbytes, const std::strin
     output->Release();
 }
 
-AP4_MemoryByteStream *VLC_AP4::modifyInit(void *inputdata, const size_t inputbytes)
+void VLC_AP4::modifyInit(void *inputdata, const size_t inputbytes)
 {
     if(!inputbytes)
-        return nullptr;
+        return;
 
     AP4_MemoryByteStream *input = new AP4_MemoryByteStream(reinterpret_cast<unsigned char *>(inputdata), inputbytes);
 
@@ -203,21 +203,21 @@ AP4_MemoryByteStream *VLC_AP4::modifyInit(void *inputdata, const size_t inputbyt
     if(!moov)
     {
         input->Release();
-        return nullptr;
+        return;
     }
 
     AP4_List<AP4_TrakAtom> *trak_atoms = &moov.get()->GetTrakAtoms();
     if(!trak_atoms->ItemCount())
     {
         input->Release();
-        return nullptr;
+        return;
     }
 
     AP4_StsdAtom *stsd = AP4_DYNAMIC_CAST(AP4_StsdAtom, trak_atoms->FirstItem()->GetData()->FindChild("mdia/minf/stbl/stsd"));
     if(stsd == nullptr)
     {
         input->Release();
-        return nullptr;
+        return;
     }
 
     AP4_Array<AP4_ProtectedSampleDescription*> sample_descs;
@@ -249,7 +249,7 @@ AP4_MemoryByteStream *VLC_AP4::modifyInit(void *inputdata, const size_t inputbyt
     if(sample_entries.ItemCount() == 0 || sample_descs.ItemCount() == 0)
     {
         input->Release();
-        return nullptr;
+        return;
     }
 
     AP4_String sampleEntryCodeString;
@@ -257,28 +257,30 @@ AP4_MemoryByteStream *VLC_AP4::modifyInit(void *inputdata, const size_t inputbyt
     if(AP4_FAILED(result))
     {
         input->Release();
-        return nullptr;
+        return;
     }
 
     const std::string sampleEntryCode(sampleEntryCodeString.GetChars(), sampleEntryCodeString.GetLength());
     if(sampleEntryCode.size() != 4)
     {
         input->Release();
-        return nullptr;
+        return;
     }
 
     const std::uint32_t format = sample_descs[0]->GetOriginalFormat();
 
+    input->Release();
+    
     std::uint64_t moovPos, trakPos, mdiaPos, minfPos, stblPos, stsdPos, encxPos = 0;
     bool moov64, trak64, mdia64, minf64, stbl64, stsd64, encx64 = false;
-    findBox(const_cast<std::uint8_t *>(input->GetData()), input->GetDataSize(), { 'm', 'o', 'o', 'v' }, moovPos, moov64);
-    findBox(const_cast<std::uint8_t *>(input->GetData()), input->GetDataSize(), { 't', 'r', 'a', 'k' }, trakPos, trak64, moovPos + 4 + 4 + ((moov64 == true) ? 8 : 0));
-    findBox(const_cast<std::uint8_t *>(input->GetData()), input->GetDataSize(), { 'm', 'd', 'i', 'a' }, mdiaPos, mdia64, trakPos + 4 + 4 + ((trak64 == true) ? 8 : 0));
-    findBox(const_cast<std::uint8_t *>(input->GetData()), input->GetDataSize(), { 'm', 'i', 'n', 'f' }, minfPos, minf64, mdiaPos + 4 + 4 + ((mdia64 == true) ? 8 : 0));
-    findBox(const_cast<std::uint8_t *>(input->GetData()), input->GetDataSize(), { 's', 't', 'b', 'l' }, stblPos, stbl64, minfPos + 4 + 4 + ((minf64 == true) ? 8 : 0));
-    findBox(const_cast<std::uint8_t *>(input->GetData()), input->GetDataSize(), { 's', 't', 's', 'd' }, stsdPos, stsd64, stblPos + 4 + 4 + ((stbl64 == true) ? 8 : 0));
+    findBox(reinterpret_cast<std::uint8_t *>(inputdata), inputbytes, { 'm', 'o', 'o', 'v' }, moovPos, moov64);
+    findBox(reinterpret_cast<std::uint8_t *>(inputdata), inputbytes, { 't', 'r', 'a', 'k' }, trakPos, trak64, moovPos + 4 + 4 + ((moov64 == true) ? 8 : 0));
+    findBox(reinterpret_cast<std::uint8_t *>(inputdata), inputbytes, { 'm', 'd', 'i', 'a' }, mdiaPos, mdia64, trakPos + 4 + 4 + ((trak64 == true) ? 8 : 0));
+    findBox(reinterpret_cast<std::uint8_t *>(inputdata), inputbytes, { 'm', 'i', 'n', 'f' }, minfPos, minf64, mdiaPos + 4 + 4 + ((mdia64 == true) ? 8 : 0));
+    findBox(reinterpret_cast<std::uint8_t *>(inputdata), inputbytes, { 's', 't', 'b', 'l' }, stblPos, stbl64, minfPos + 4 + 4 + ((minf64 == true) ? 8 : 0));
+    findBox(reinterpret_cast<std::uint8_t *>(inputdata), inputbytes, { 's', 't', 's', 'd' }, stsdPos, stsd64, stblPos + 4 + 4 + ((stbl64 == true) ? 8 : 0));
     findBox(
-        const_cast<std::uint8_t *>(input->GetData()), input->GetDataSize(),
+        reinterpret_cast<std::uint8_t *>(inputdata), inputbytes,
         { static_cast<std::uint8_t>(sampleEntryCode[0]), static_cast<std::uint8_t>(sampleEntryCode[1]), static_cast<std::uint8_t>(sampleEntryCode[2]), static_cast<std::uint8_t>(sampleEntryCode[3]) },
         encxPos, encx64, stsdPos + 4 + 4 + 4 + 4 + ((stsd64 == true) ? 8 : 0)
     );
@@ -289,10 +291,8 @@ AP4_MemoryByteStream *VLC_AP4::modifyInit(void *inputdata, const size_t inputbyt
     fourcc[2] = static_cast<uint8_t>(format >> 8);
     fourcc[3] = static_cast<uint8_t>(format);
 
-    std::copy_n(&fourcc[0], 1, const_cast<std::uint8_t *>(input->GetData()) + encxPos + 4);
-    std::copy_n(&fourcc[1], 1, const_cast<std::uint8_t *>(input->GetData()) + encxPos + 5);
-    std::copy_n(&fourcc[2], 1, const_cast<std::uint8_t *>(input->GetData()) + encxPos + 6);
-    std::copy_n(&fourcc[3], 1, const_cast<std::uint8_t *>(input->GetData()) + encxPos + 7);
-
-    return input;
+    std::copy_n(&fourcc[0], 1, reinterpret_cast<std::uint8_t *>(inputdata) + encxPos + 4);
+    std::copy_n(&fourcc[1], 1, reinterpret_cast<std::uint8_t *>(inputdata) + encxPos + 5);
+    std::copy_n(&fourcc[2], 1, reinterpret_cast<std::uint8_t *>(inputdata) + encxPos + 6);
+    std::copy_n(&fourcc[3], 1, reinterpret_cast<std::uint8_t *>(inputdata) + encxPos + 7);
 }
