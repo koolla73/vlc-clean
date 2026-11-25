@@ -19,49 +19,6 @@
 
 
 namespace {
-
-    class AP4_EditingProcessor final : public AP4_Processor
-    {
-    private:
-        void* operator new(size_t);
-        void* operator new(size_t, void*);
-        void* operator new[](size_t);
-        void* operator new[](size_t, void*);
-
-    public:
-        virtual AP4_Result Initialize(AP4_AtomParent &top_level, AP4_ByteStream &stream, ProgressListener *listener)
-        {
-            const AP4_Result result = remove(top_level);
-
-            if (AP4_FAILED(result))
-                return result;
-
-            return AP4_SUCCESS;
-        }
-
-
-    private:
-        AP4_Result remove(AP4_AtomParent &top_level)
-        {
-            const std::string path ("moov/trak/mdia/minf/stbl/stsd/" + sampleEntryCode + "/sinf");
-            AP4_Atom *atom = top_level.FindChild(path.c_str());
-            if(atom == NULL)
-                return AP4_FAILURE;
-            else
-            {
-                atom->Detach();
-                delete atom;
-                return AP4_SUCCESS;
-            }
-        }
-
-    public:
-        std::string sampleEntryCode;
-
-    private:
-        AP4_AtomParent m_TopLevelParent;
-    };
-
     std::uint32_t uint32E(std::array<std::uint8_t, 4>* header)
     {
         return uint32be(header);
@@ -141,10 +98,10 @@ std::string VLC_AP4::getKeyID(void *inputdata, const size_t inputbytes)
     return keyId;
 }
 
-AP4_MemoryByteStream *VLC_AP4::decrypt(void *inputdata, const size_t inputbytes, const std::string &keyId, const std::vector<unsigned char> &key)
+void VLC_AP4::decrypt(void *inputdata, const size_t inputbytes, const std::string &keyId, const std::vector<unsigned char> &key)
 {
     if (keyId.size() != 32 || key.size() != 32)
-        return nullptr;
+        return;
 
     std::uint8_t keyID[16];
     std::uint8_t decryptionKey[16];
@@ -163,91 +120,27 @@ AP4_MemoryByteStream *VLC_AP4::decrypt(void *inputdata, const size_t inputbytes,
     {
         input->Release();
         output->Release();
-        return nullptr;
+        return;
     }
 
     input->Release();
-    output->Seek(0);
-    
-    AP4_File file = AP4_File(*output, true);
-    AP4_Movie *movie = file.GetMovie();
-    if(movie == nullptr)
+
+    std::uint64_t encryptedMdatBytePosition = 0;
+    std::uint64_t encryptedMdatBoxSize = 0;
+    std::uint64_t decryptedMdatBytePosition = 0;
+    std::uint64_t decryptedMdatBoxSize = 0;
+    findBox(reinterpret_cast<std::uint8_t *>(inputdata), inputbytes, { 'm', 'd', 'a', 't' }, encryptedMdatBytePosition, encryptedMdatBoxSize);
+    findBox(const_cast<std::uint8_t *>(output->GetData()), output->GetDataSize(), { 'm', 'd', 'a', 't' }, decryptedMdatBytePosition, decryptedMdatBoxSize);
+
+    if(!decryptedMdatBoxSize || encryptedMdatBoxSize != decryptedMdatBoxSize)
     {
         output->Release();
-        return nullptr;
+        return;
     }
 
-    AP4_Result result;
-    AP4_MemoryByteStream *init = new AP4_MemoryByteStream();
-    AP4_FtypAtom *ftyp = file.GetFileType();
-    if(ftyp)
-    {
-        result = ftyp->Write(*init);
-        if(AP4_FAILED(result))
-        {
-            init->Release();
-            output->Release();
-            return nullptr;
-        }
-    }
-    
-    result = movie->GetMoovAtom()->Write(*init);
-    if(AP4_FAILED(result))
-    {
-        init->Release();
-        output->Release();
-        return nullptr;
-    }
-
-    init->Release();
-
-    AP4_Atom *atom = nullptr;
-    AP4_DefaultAtomFactory atom_factory;
-    AP4_MemoryByteStream *segment = nullptr;
-    for(;;) {
-        result = atom_factory.CreateAtomFromStream(*output, atom);
-        if(AP4_FAILED(result))
-            break;
-
-        if(atom->GetType() == AP4_ATOM_TYPE_MOOF)
-        {
-            AP4_ContainerAtom *moof = AP4_DYNAMIC_CAST(AP4_ContainerAtom, atom);
-
-            std::uint32_t traf_count = 0;
-            AP4_ContainerAtom *traf = nullptr;
-            do{
-                traf = AP4_DYNAMIC_CAST(AP4_ContainerAtom, moof->GetChild(AP4_ATOM_TYPE_TRAF, traf_count));
-                if(traf == NULL)
-                    break;
-                AP4_TfhdAtom *tfhd = AP4_DYNAMIC_CAST(AP4_TfhdAtom, traf->GetChild(AP4_ATOM_TYPE_TFHD));
-                if(tfhd == NULL)
-                {
-                    if (segment)
-                        segment->Release();
-                    output->Release();
-                    return nullptr;
-                }
-
-                traf_count++;
-            } while (traf);
-
-            if(segment)
-            {
-                segment->Release();
-                segment = nullptr;
-            }
-            segment = new AP4_MemoryByteStream();
-        }
-
-        if(segment && atom->GetType() != AP4_ATOM_TYPE_MFRA)
-            atom->Write(*segment);
-
-        delete atom;
-    }
+    memcpy(inputdata + encryptedMdatBytePosition, output->GetData() + decryptedMdatBytePosition, decryptedMdatBoxSize);
 
     output->Release();
-
-    return segment;
 }
 
 AP4_MemoryByteStream *VLC_AP4::modifyInit(void *inputdata, const size_t inputbytes)
@@ -334,32 +227,18 @@ AP4_MemoryByteStream *VLC_AP4::modifyInit(void *inputdata, const size_t inputbyt
         return nullptr;
     }
 
-    AP4_EditingProcessor processor;
-    processor.sampleEntryCode = sampleEntryCode;
-    AP4_MemoryByteStream *output = new AP4_MemoryByteStream();
-
-    input->Seek(0);
-    if(AP4_FAILED(processor.Process(*input, *output)))
-    {
-        input->Release();
-        output->Release();
-        return nullptr;
-    }
-
-    input->Release();
-
     const std::uint32_t format = sample_descs[0]->GetOriginalFormat();
 
     std::uint64_t moovPos, trakPos, mdiaPos, minfPos, stblPos, stsdPos, encxPos = 0;
     bool moov64, trak64, mdia64, minf64, stbl64, stsd64, encx64 = false;
-    findBox(const_cast<std::uint8_t *>(output->GetData()), output->GetDataSize(), { 'm', 'o', 'o', 'v' }, moovPos, moov64);
-    findBox(const_cast<std::uint8_t *>(output->GetData()), output->GetDataSize(), { 't', 'r', 'a', 'k' }, trakPos, trak64, moovPos + 4 + 4 + ((moov64 == true) ? 8 : 0));
-    findBox(const_cast<std::uint8_t *>(output->GetData()), output->GetDataSize(), { 'm', 'd', 'i', 'a' }, mdiaPos, mdia64, trakPos + 4 + 4 + ((trak64 == true) ? 8 : 0));
-    findBox(const_cast<std::uint8_t *>(output->GetData()), output->GetDataSize(), { 'm', 'i', 'n', 'f' }, minfPos, minf64, mdiaPos + 4 + 4 + ((mdia64 == true) ? 8 : 0));
-    findBox(const_cast<std::uint8_t *>(output->GetData()), output->GetDataSize(), { 's', 't', 'b', 'l' }, stblPos, stbl64, minfPos + 4 + 4 + ((minf64 == true) ? 8 : 0));
-    findBox(const_cast<std::uint8_t *>(output->GetData()), output->GetDataSize(), { 's', 't', 's', 'd' }, stsdPos, stsd64, stblPos + 4 + 4 + ((stbl64 == true) ? 8 : 0));
+    findBox(const_cast<std::uint8_t *>(input->GetData()), input->GetDataSize(), { 'm', 'o', 'o', 'v' }, moovPos, moov64);
+    findBox(const_cast<std::uint8_t *>(input->GetData()), input->GetDataSize(), { 't', 'r', 'a', 'k' }, trakPos, trak64, moovPos + 4 + 4 + ((moov64 == true) ? 8 : 0));
+    findBox(const_cast<std::uint8_t *>(input->GetData()), input->GetDataSize(), { 'm', 'd', 'i', 'a' }, mdiaPos, mdia64, trakPos + 4 + 4 + ((trak64 == true) ? 8 : 0));
+    findBox(const_cast<std::uint8_t *>(input->GetData()), input->GetDataSize(), { 'm', 'i', 'n', 'f' }, minfPos, minf64, mdiaPos + 4 + 4 + ((mdia64 == true) ? 8 : 0));
+    findBox(const_cast<std::uint8_t *>(input->GetData()), input->GetDataSize(), { 's', 't', 'b', 'l' }, stblPos, stbl64, minfPos + 4 + 4 + ((minf64 == true) ? 8 : 0));
+    findBox(const_cast<std::uint8_t *>(input->GetData()), input->GetDataSize(), { 's', 't', 's', 'd' }, stsdPos, stsd64, stblPos + 4 + 4 + ((stbl64 == true) ? 8 : 0));
     findBox(
-        const_cast<std::uint8_t *>(output->GetData()), output->GetDataSize(),
+        const_cast<std::uint8_t *>(input->GetData()), input->GetDataSize(),
         { static_cast<std::uint8_t>(sampleEntryCode[0]), static_cast<std::uint8_t>(sampleEntryCode[1]), static_cast<std::uint8_t>(sampleEntryCode[2]), static_cast<std::uint8_t>(sampleEntryCode[3]) },
         encxPos, encx64, stsdPos + 4 + 4 + 4 + 4 + ((stsd64 == true) ? 8 : 0)
     );
@@ -370,10 +249,10 @@ AP4_MemoryByteStream *VLC_AP4::modifyInit(void *inputdata, const size_t inputbyt
     fourcc[2] = static_cast<uint8_t>(format >> 8);
     fourcc[3] = static_cast<uint8_t>(format);
 
-    std::copy_n(&fourcc[0], 1, const_cast<std::uint8_t *>(output->GetData()) + encxPos + 4);
-    std::copy_n(&fourcc[1], 1, const_cast<std::uint8_t *>(output->GetData()) + encxPos + 5);
-    std::copy_n(&fourcc[2], 1, const_cast<std::uint8_t *>(output->GetData()) + encxPos + 6);
-    std::copy_n(&fourcc[3], 1, const_cast<std::uint8_t *>(output->GetData()) + encxPos + 7);
+    std::copy_n(&fourcc[0], 1, const_cast<std::uint8_t *>(input->GetData()) + encxPos + 4);
+    std::copy_n(&fourcc[1], 1, const_cast<std::uint8_t *>(input->GetData()) + encxPos + 5);
+    std::copy_n(&fourcc[2], 1, const_cast<std::uint8_t *>(input->GetData()) + encxPos + 6);
+    std::copy_n(&fourcc[3], 1, const_cast<std::uint8_t *>(input->GetData()) + encxPos + 7);
 
-    return output;
+    return input;
 }
