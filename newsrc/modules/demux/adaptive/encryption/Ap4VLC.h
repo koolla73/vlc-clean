@@ -24,7 +24,7 @@ private:
 
 public:
     static std::string getKeyID(void *, const size_t);
-    static AP4_MemoryByteStream *decrypt(void *inputdata, const size_t inputbytes, const std::string &keyId, const std::vector<unsigned char> &key);
+    static void decrypt(void *inputdata, const size_t inputbytes, const std::string &keyId, const std::vector<unsigned char> &key);
     static AP4_MemoryByteStream *modifyInit(void *, const size_t);
 
 private:
