@@ -23,7 +23,6 @@
 #endif
 
 #include "CommonEncryption.hpp"
-#include "Ap4ByteStream.h"
 #include "Ap4VLC.h"
 #include "Keyring.hpp"
 #include "../SharedResources.hpp"
@@ -62,9 +61,9 @@ std::string CommonEncryption::getKeyID(void *inputdata, const size_t inputbytes)
     return VLC_AP4::getKeyID(inputdata, inputbytes);
 }
 
-AP4_MemoryByteStream* CommonEncryption::modifyInit(void *inputdata, const size_t inputbytes)
+void CommonEncryption::modifyInit(void *inputdata, const size_t inputbytes)
 { 
-    return VLC_AP4::modifyInit(inputdata, inputbytes);
+    VLC_AP4::modifyInit(inputdata, inputbytes);
 }
 
 CommonEncryptionSession::CommonEncryptionSession()
