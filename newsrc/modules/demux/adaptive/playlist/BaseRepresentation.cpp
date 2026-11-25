@@ -177,7 +177,7 @@ void BaseRepresentation::saveInitData(block_t **initBlock)
 block_t *BaseRepresentation::prependInitData(block_t **pp_block) const
 {
     if(!initData)
-        return;
+        return nullptr;
     
     block_t *p_block = *pp_block;
     block_t *p_block_dup = block_Alloc(initData->i_buffer + p_block->i_buffer);
