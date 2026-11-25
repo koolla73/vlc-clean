@@ -1,8 +1,6 @@
 #ifndef VLC_AP4_H
 #define VLC_AP4_H
 
-#include "Ap4ByteStream.h"
-
 #include <mutex>
 #include <string>
 #include <vector>
@@ -25,7 +23,7 @@ private:
 public:
     static std::string getKeyID(void *, const size_t);
     static void decrypt(void *inputdata, const size_t inputbytes, const std::string &keyId, const std::vector<unsigned char> &key);
-    static AP4_MemoryByteStream *modifyInit(void *, const size_t);
+    static void modifyInit(void *, const size_t);
 
 private:
     inline static std::string keyId;
