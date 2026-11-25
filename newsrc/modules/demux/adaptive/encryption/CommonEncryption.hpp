@@ -23,8 +23,6 @@
 #include <vector>
 #include <string>
 
-class AP4_MemoryByteStream;
-
 namespace adaptive
 {
     class SharedResources;
@@ -37,7 +35,7 @@ namespace adaptive
                 CommonEncryption();
                 void mergeWith(const CommonEncryption &);
                 static std::string getKeyID(void *inputdata, const size_t inputbytes);
-                static AP4_MemoryByteStream* modifyInit(void *inputdata, const size_t inputbytes);
+                static void modifyInit(void *inputdata, const size_t inputbytes);
                 enum class Method
                 {
                     None,
