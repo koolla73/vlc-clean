@@ -138,9 +138,9 @@ std::string VLC_AP4::getKeyID(void *inputdata, const size_t inputbytes)
     return keyId;
 }
 
-void VLC_AP4::decrypt(void *inputdata, const size_t inputbytes, const std::string &keyId, const std::vector<unsigned char> &key)
+void VLC_AP4::decrypt(void *inputdata, const size_t inputbytes, const std::string &keyId, const std::vector<unsigned char> &key, void *originaldata, const size_t originalbytes)
 {
-    if (keyId.size() != 32 || key.size() != 32)
+    if (keyId.size() != 32 || key.size() != 32 || !inputbytes || !originalbytes)
         return;
 
     std::uint8_t keyID[16];
@@ -169,16 +169,16 @@ void VLC_AP4::decrypt(void *inputdata, const size_t inputbytes, const std::strin
     std::uint64_t encryptedMdatBoxSize = 0;
     std::uint64_t decryptedMdatBytePosition = 0;
     std::uint64_t decryptedMdatBoxSize = 0;
-    findBox(reinterpret_cast<std::uint8_t *>(inputdata), inputbytes, { 'm', 'd', 'a', 't' }, encryptedMdatBytePosition, encryptedMdatBoxSize);
+    findBox(reinterpret_cast<std::uint8_t *>(originaldata), originalbytes, { 'm', 'd', 'a', 't' }, encryptedMdatBytePosition, encryptedMdatBoxSize);
     findBox(const_cast<std::uint8_t *>(output->GetData()), output->GetDataSize(), { 'm', 'd', 'a', 't' }, decryptedMdatBytePosition, decryptedMdatBoxSize);
 
-    if(!decryptedMdatBoxSize || encryptedMdatBoxSize != decryptedMdatBoxSize)
+    if(!decryptedMdatBoxSize || !encryptedMdatBoxSize || encryptedMdatBoxSize != decryptedMdatBoxSize)
     {
         output->Release();
         return;
     }
 
-    memcpy(inputdata + encryptedMdatBytePosition, output->GetData() + decryptedMdatBytePosition, decryptedMdatBoxSize);
+    memcpy(originaldata + encryptedMdatBytePosition, output->GetData() + decryptedMdatBytePosition, decryptedMdatBoxSize);
 
     output->Release();
 }
