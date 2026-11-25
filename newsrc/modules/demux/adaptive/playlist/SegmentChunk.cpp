@@ -83,6 +83,7 @@ void SegmentChunk::onDownload(block_t **pp_block)
         block_t *p_duplicate = block_Duplicate(p_block);
         rep->prependInitData(&p_duplicate);
         encryptionSession->decryptCtr(p_duplicate->p_buffer, p_duplicate->i_buffer, rep->getKeyID(), p_block->p_buffer, p_block->i_buffer);
+        block_Release(p_duplicate);
     }
 }
 
