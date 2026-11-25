@@ -181,7 +181,7 @@ block_t *BaseRepresentation::prependInitData(block_t **pp_block) const
     
     block_t *p_block = *pp_block;
     block_t *p_block_dup = block_Alloc(initData->i_buffer + p_block->i_buffer);
-    if (p_block_dup) {
+    if(p_block_dup) {
         memcpy(p_block_dup->p_buffer, initData->p_buffer, initData->i_buffer);
         memcpy(p_block_dup->p_buffer + initData->i_buffer, p_block->p_buffer, p_block->i_buffer);
     }
