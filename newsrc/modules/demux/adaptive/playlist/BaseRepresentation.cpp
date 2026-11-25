@@ -174,21 +174,21 @@ void BaseRepresentation::saveInitData(block_t **initBlock)
     initData = block_Duplicate(*initBlock);
 }
 
-void BaseRepresentation::prependInitData(block_t **pp_block) const
+block_t *BaseRepresentation::prependInitData(block_t **pp_block) const
 {
     if(!initData)
         return;
     
     block_t *p_block = *pp_block;
-    block_t *p_block_dup = block_Duplicate(p_block);
-    block_Release(p_block);
-    p_block = block_Alloc(initData->i_buffer + p_block_dup->i_buffer);
-    if (p_block) {
-        memcpy(p_block->p_buffer, initData->p_buffer, initData->i_buffer);
-        memcpy(p_block->p_buffer + initData->i_buffer, p_block_dup->p_buffer, p_block_dup->i_buffer);
+    block_t *p_block_dup = block_Alloc(initData->i_buffer + p_block->i_buffer);
+    if (p_block_dup) {
+        memcpy(p_block_dup->p_buffer, initData->p_buffer, initData->i_buffer);
+        memcpy(p_block_dup->p_buffer + initData->i_buffer, p_block->p_buffer, p_block->i_buffer);
     }
+    else
+        return nullptr;
     
-    block_Release(p_block_dup);
+    return p_block_dup;
 }
 
 void BaseRepresentation::setKeyID(const std::string &keyID)
