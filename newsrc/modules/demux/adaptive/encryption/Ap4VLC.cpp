@@ -79,6 +79,46 @@ namespace {
             currentBytePosition += payloadSize64;
         }
     }
+
+    void findBox(std::uint8_t *inputdata, const size_t inputbytes, const std::array<std::uint8_t, 4> &boxToFind, std::uint64_t &boxPos, std::uint64_t &boxSize)
+    {
+        std::uint64_t currentBytePosition = 0;
+        std::array<std::uint8_t, 4> header = { 0 };
+        std::uint32_t payloadSize = 0;
+        std::uint64_t payloadSize64 = 0;
+
+        while(currentBytePosition < inputbytes)
+        {
+            std::copy_n(inputdata + currentBytePosition, 4, std::begin(header));
+            payloadSize = payloadSize64 = uint32E(&header);
+            if(payloadSize == 0)
+            {
+                // Box size is whole file.
+                payloadSize64 = inputbytes;
+            }
+            else if(payloadSize == 1)
+            {
+                // Box size is 64-bit.
+                std::array<unsigned char, 8> header64 = { 0 };
+                std::copy_n(inputdata + currentBytePosition + 4 + 4, 8, std::begin(header64));
+                payloadSize64 = uint64E(&header64);
+            }
+
+            header.fill(0);
+            std::copy_n(inputdata + currentBytePosition + 4, 4, std::begin(header));
+
+            if(header == boxToFind)
+            {
+                boxPos = currentBytePosition;
+                boxSize = payloadSize64;
+                return;
+            }
+
+            header.fill(0);
+
+            currentBytePosition += payloadSize64;
+        }
+    }
 }
 
 std::string VLC_AP4::getKeyID(void *inputdata, const size_t inputbytes)
