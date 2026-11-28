@@ -1,25 +1,33 @@
-#ifndef _AP4_VLC_H_
-#define _AP4_VLC_H_
+#ifndef VLC_AP4_H
+#define VLC_AP4_H
 
+#include <mutex>
+#include <string>
 #include <vector>
 
-typedef struct vlc_frame_t block_t;
-
-class AP4_VLC final {
+class VLC_AP4 final {
 private:
     friend class AP4_CencTrackEncryption;
-    AP4_VLC() = delete;
-    AP4_VLC(const AP4_VLC& other) = delete;
-    AP4_VLC& operator=(const AP4_VLC& other) = delete;
-    AP4_VLC(AP4_VLC&& other) = delete;
-    AP4_VLC& operator=(AP4_VLC&& other) = delete;
+    VLC_AP4() = delete;
+    ~VLC_AP4() = delete;
+    VLC_AP4(const VLC_AP4& other) = delete;
+    VLC_AP4& operator=(const VLC_AP4& other) = delete;
+    VLC_AP4(VLC_AP4&& other) = delete;
+    VLC_AP4& operator=(VLC_AP4&& other) = delete;
+
+    void* operator new(size_t);
+    void* operator new(size_t, void*);
+    void* operator new[](size_t);
+    void* operator new[](size_t, void*);
 
 public:
-    static std::vector<unsigned char> getKeyID(block_t **);
-    static void decrypt(block_t **pp_block, const std::vector<unsigned char> &keyId, const std::vector<unsigned char> &key);
+    static std::string getKeyID(void *, const size_t);
+    static void decrypt(void *inputdata, const size_t inputbytes, const std::string &keyId, const std::vector<unsigned char> &key, void *originaldata, const size_t originalbytes);
+    static void modifyInit(void *, const size_t);
 
 private:
-    inline static std::vector<unsigned char> keyId;
+    inline static std::string keyId;
+    inline static std::mutex m_mutex;
 };
 
-#endif // !_AP4_VLC_H_
+#endif // !VLC_AP4_H
